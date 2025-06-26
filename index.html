@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站目录</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div class="container mx-auto max-w-3xl p-4 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">网站内容索引</h1>
+            <p class="mt-2 text-slate-600">所有页面均按最后更新时间倒序排列。</p>
+        </header>
+        <div class="mb-8">
+            <input type="text" id="searchInput" placeholder="在此输入关键词进行搜索..." class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+        </div>
+        <main>
+            <div id="fileList" class="space-y-4">
+<ul class="space-y-3">
+                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+          <a href="github_action.html" class="flex justify-between items-center">
+              <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">github_action.html</span>
+              <span class="text-sm text-slate-500">2025-06-26</span>
+          </a>
+      </li>
+                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+          <a href="qiwei_assist.html" class="flex justify-between items-center">
+              <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">qiwei_assist.html</span>
+              <span class="text-sm text-slate-500">2025-06-26</span>
+          </a>
+      </li>
+</ul>
+            </div>
+        </main>
+        <footer class="text-center mt-12 py-4 border-t">
+            <p class="text-sm text-slate-500">索引由 GitHub Actions 自动生成</p>
+        </footer>
+    </div>
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const fileList = document.getElementById('fileList');
+        const items = fileList.getElementsByClassName('file-item');
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+                if (fileName.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            }
+        });
+    <\/script>
+</body>
+</html>
