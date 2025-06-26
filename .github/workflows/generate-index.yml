@@ -36,4 +36,3 @@ jobs:
           fi
           git commit -m "Automated: Update index.html"
           git push
-
