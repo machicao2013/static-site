@@ -3,19 +3,19 @@ name: Generate Index Page
 on:
   push:
     branches:
-      - main # 或者你的主分支名，比如 master
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 授予工作流写入仓库内容的权限
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 获取所有历史记录，以便获取文件时间
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -30,18 +30,15 @@ jobs:
           
           def get_file_commit_date(filepath):
               try:
-                  # 使用 git log 获取文件的最后一次提交时间 (ISO 8601 格式)
                   cmd = ['git', 'log', '-1', '--format=%cI', filepath]
                   result = subprocess.check_output(cmd).decode('utf-8').strip()
                   return datetime.fromisoformat(result)
               except Exception as e:
                   print(f"Could not get commit date for {filepath}: {e}")
-                  # 如果出错，返回一个很早的时间，使其排在最后
                   return datetime.min
 
           html_files = []
           for root, _, files in os.walk('.'):
-              # 忽略 .github 目录和隐藏目录
               if '.git' in root or '.github' in root:
                   continue
               for file in files:
@@ -52,10 +49,8 @@ jobs:
                           'date': get_file_commit_date(filepath)
                       })
 
-          # 按时间倒序排序
           html_files.sort(key=lambda x: x['date'], reverse=True)
 
-          # --- 开始生成 HTML 内容 ---
           html_content = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -73,8 +68,13 @@ jobs:
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">网站内容索引</h1>
             <p class="mt-2 text-slate-600">所有页面均按最后更新时间倒序排列。</p>
         </header>
+        
+        <div class="mb-8">
+            <input type="text" id="searchInput" placeholder="在此输入关键词进行搜索..." class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+        </div>
+
         <main>
-            <div class="space-y-4">
+            <div id="fileList" class="space-y-4">
 """
 
           if not html_files:
@@ -82,12 +82,11 @@ jobs:
           else:
               html_content += '<ul class="space-y-3">'
               for item in html_files:
-                  # 格式化日期显示
                   date_str = item['date'].strftime('%Y-%m-%d')
                   html_content += f"""
-                <li class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
                     <a href="{item['path']}" class="flex justify-between items-center">
-                        <span class="text-lg font-medium text-sky-700 hover:text-sky-600">{item['path']}</span>
+                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">{item['path']}</span>
                         <span class="text-sm text-slate-500">{date_str}</span>
                     </a>
                 </li>"""
@@ -100,10 +99,30 @@ jobs:
             <p class="text-sm text-slate-500">索引由 GitHub Actions 自动生成</p>
         </footer>
     </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const fileList = document.getElementById('fileList');
+        const items = fileList.getElementsByClassName('file-item');
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+
+                if (fileName.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            }
+        });
+    </script>
 </body>
 </html>
 """
-          # --- HTML 内容生成结束 ---
 
           with open('index.html', 'w', encoding='utf-8') as f:
               f.write(html_content)
@@ -114,10 +133,9 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add index.html
-          # 检查是否有文件变动
           if git diff --staged --quiet; then
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "Automated: Update index.html"
+          git commit -m "Automated: Update index.html with search functionality"
           git push
