@@ -32,7 +32,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write('    <meta charset="UTF-8">\n')
     f.write('    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n')
     f.write('    <title>网站目录</title>\n')
-    f.write('    <script src="https://cdn.tailwindcss.com"><\/script>\n')
+    f.write('    <script src="https://cdn.tailwindcss.com"></script>\n')
     f.write('    <style>\n')
     f.write("        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }\n")
     f.write('    </style>\n')
@@ -81,7 +81,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write("                }\n")
     f.write("            }\n")
     f.write("        });\n")
-    f.write('    <\/script>\n')
+    f.write('    </script>\n')
     f.write('</body>\n')
     f.write('</html>\n')
 
