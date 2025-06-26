@@ -3,7 +3,7 @@ name: Generate Index Page
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
