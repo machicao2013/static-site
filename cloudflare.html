@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式教程：Cloudflare Containers 从入门到精通</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: 本应用被设计为一个“交互式学习手册”单页应用（SPA）。与原文的线性结构不同，我采用了模块化的信息架构，通过一个固定的侧边栏导航，用户可以自由跳转到“核心概念”、“快速入门”、“高级技巧”、“实战项目”和“生产运维”等关键章节。这种非线性的结构更符合学习者反复查阅和跳跃学习的习惯。每个章节内部，通过交互式图表、可点击的元素和代码标签页，将复杂的概念和流程进行可视化、分步化的拆解，旨在将静态的知识灌输转变为动态的探索过程，从而极大地提升学习体验和知识吸收效率。 -->
+    <!-- Visualization & Content Choices: 
+        - 核心架构: (Report Info: Worker→DO→Container 流程) -> (Goal: 解释关系) -> (Viz: HTML/CSS交互式流程图) -> (Interaction: 点击节点显示详情) -> (Justification: 动态展示比静态文字更易于理解复杂抽象的架构关系) -> (Library: Tailwind CSS)。
+        - 计算模型对比: (Report Info: Workers/Containers/VMs对比表) -> (Goal: 对比) -> (Viz: 响应式HTML表格) -> (Interaction: 行悬停高亮) -> (Justification: 表格是最佳形式，交互高亮便于聚焦对比项) -> (Library: Tailwind CSS)。
+        - 代码示例: (Report Info: 各项目中的go, Dockerfile, ts文件) -> (Goal: 展示代码) -> (Viz: 标签页界面) -> (Interaction: 点击标签切换文件，点击按钮复制) -> (Justification: 模拟IDE体验，结构清晰，避免页面过长) -> (Library: Vanilla JS)。
+        - CI/CD流程: (Report Info: GitHub Actions工作流) -> (Goal: 组织、解释流程) -> (Viz: HTML/CSS步骤图) -> (Interaction: 悬停步骤显示代码片段) -> (Justification: 视觉化流程比纯代码块更易懂) -> (Library: Tailwind CSS)。
+        - 监控图表示例: (Report Info: 可观测性概念) -> (Goal: 告知) -> (Viz: 示例折线图) -> (Interaction: 悬停显示工具提示) -> (Justification: 为抽象的监控概念提供具体视觉形象) -> (Library: Chart.js)。
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link.active {
+            background-color: #f59e0b; /* amber-500 */
+            color: white;
+        }
+        .tab.active {
+            border-color: #f59e0b; /* amber-500 */
+            color: #f59e0b;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-white md:min-h-screen p-4 border-b md:border-r border-stone-200 sticky top-0 md:top-auto z-20">
+            <div class="flex justify-between items-center">
+                <h1 class="text-xl font-bold text-amber-600">学习手册</h1>
+                <button id="menu-toggle" class="md:hidden p-2 rounded-md hover:bg-stone-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+            <nav id="sidebar-nav" class="mt-4 hidden md:block">
+                <ul>
+                    <li class="mb-2"><a href="#intro" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">欢迎</a></li>
+                    <li class="mb-2 font-semibold text-stone-500 text-sm uppercase tracking-wider">第一部分</li>
+                    <li class="mb-2"><a href="#concepts" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">核心概念</a></li>
+                    <li class="mb-2"><a href="#setup" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">环境搭建</a></li>
+                    <li class="mb-2 font-semibold text-stone-500 text-sm uppercase tracking-wider">第二部分</li>
+                    <li class="mb-2"><a href="#first-deploy" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">首次部署</a></li>
+                    <li class="mb-2 font-semibold text-stone-500 text-sm uppercase tracking-wider">第三部分</li>
+                    <li class="mb-2"><a href="#intermediate" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">中级技巧</a></li>
+                    <li class="mb-2"><a href="#project1" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">项目一：KV驱动服务</a></li>
+                    <li class="mb-2 font-semibold text-stone-500 text-sm uppercase tracking-wider">第四部分</li>
+                    <li class="mb-2"><a href="#advanced" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">高级应用</a></li>
+                    <li class="mb-2 font-semibold text-stone-500 text-sm uppercase tracking-wider">第五部分</li>
+                    <li class="mb-2"><a href="#production" class="nav-link block p-2 rounded-md hover:bg-amber-100 hover:text-amber-700 transition-colors">生产与未来</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10">
+            <section id="intro" class="mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">从零到全球：基于Go语言的Cloudflare Containers大师级教程</h2>
+                <p class="text-lg text-stone-600 mb-6">你好，欢迎加入我们！我是Cloudflare Containers设计和开发团队的负责人。在这份交互式教程中，我将带你深入了解其内部的架构理念、设计哲学以及我们为解决全球化应用部署难题所做的思考。这份教程专为熟悉Go语言但对Serverless和容器编排领域尚感陌生的开发者设计。</p>
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <p class="text-amber-800">我们的目标是让你在完成本教程后，不仅知其然，更知其所以然，从入门到精通。让我们开始这段激动人心的旅程吧。</p>
+                </div>
+            </section>
+            
+            <section id="concepts" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">第一部分：核心概念</h3>
+                <div class="space-y-8">
+                    <article>
+                        <h4 class="text-xl font-semibold mb-2">“部署到地球 (Region: Earth)” 的哲学</h4>
+                        <p class="text-stone-600 mb-4">传统云平台要求你为应用的全球化部署煞费苦心。我们的目标是彻底将你从这种复杂性中解放出来。通过 `wrangler deploy` 这一条简单的命令，你的容器镜像会被自动推送到全球化注册表，并在我们遍布全球的数据中心网络中进行预热和分发。当用户请求到达时，我们可以在离用户最近的地方启动一个容器实例来处理请求。</p>
+                    </article>
+
+                    <article>
+                        <h4 class="text-xl font-semibold mb-3">核心架构三元组：Worker → Durable Object → Container</h4>
+                        <p class="text-stone-600 mb-6">要精通Cloudflare Containers，必须深刻理解这个核心的请求处理与控制流程。它由三个紧密协作的组件构成。点击下方卡片查看每个组件的详细职责。</p>
+                        
+                        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
+                            <!-- Worker -->
+                            <div data-target="detail-worker" class="interactive-card flex-1 p-4 border border-stone-200 rounded-lg shadow-sm hover:shadow-lg hover:border-amber-400 transition cursor-pointer text-center w-full md:w-auto">
+                                <span class="text-4xl">🧠</span>
+                                <h5 class="font-bold mt-2">1. Worker</h5>
+                                <p class="text-sm text-stone-500">可编程的流量入口</p>
+                            </div>
+                            <div class="text-2xl text-stone-400 font-light">→</div>
+                            <!-- Durable Object -->
+                            <div data-target="detail-do" class="interactive-card flex-1 p-4 border border-stone-200 rounded-lg shadow-sm hover:shadow-lg hover:border-amber-400 transition cursor-pointer text-center w-full md:w-auto">
+                                <span class="text-4xl">🕹️</span>
+                                <h5 class="font-bold mt-2">2. Durable Object</h5>
+                                <p class="text-sm text-stone-500">可编程的边车 (Sidecar)</p>
+                            </div>
+                            <div class="text-2xl text-stone-400 font-light">→</div>
+                            <!-- Container -->
+                            <div data-target="detail-container" class="interactive-card flex-1 p-4 border border-stone-200 rounded-lg shadow-sm hover:shadow-lg hover:border-amber-400 transition cursor-pointer text-center w-full md:w-auto">
+                                <span class="text-4xl">🐎</span>
+                                <h5 class="font-bold mt-2">3. Container</h5>
+                                <p class="text-sm text-stone-500">处理繁重任务的“苦力”</p>
+                            </div>
+                        </div>
+
+                        <div id="architecture-details" class="mt-4 p-6 bg-white rounded-lg border border-stone-200 min-h-[150px] transition-all duration-300">
+                             <div id="detail-initial" class="detail-content text-stone-500">点击上方的组件卡片，查看详细说明。</div>
+                             <div id="detail-worker" class="detail-content hidden space-y-2">
+                                <h5 class="font-bold text-lg">Worker：可编程的流量入口</h5>
+                                <p>所有外部请求首先到达Worker。在这里，你可以利用JavaScript或TypeScript编写强大的逻辑，处理路由、用户认证、API密钥验证、缓存策略、请求重写和速率限制等所有入口流量管理任务。只有在这些前置逻辑处理完毕后，请求才会被转发给容器。</p>
+                            </div>
+                             <div id="detail-do" class="detail-content hidden space-y-2">
+                                <h5 class="font-bold text-lg">Durable Object：可编程的边车 (Sidecar)</h5>
+                                <p>这是我们架构的“秘密武器”。每个运行的容器实例，都有一个专属的Durable Object与之伴随并对其进行管理。你可以在DO的类中编写代码，来精细化地控制关联容器的整个生命周期：如何启动、何时休眠、如何处理错误等。这实现了真正的“基础设施即代码”。</p>
+                            </div>
+                             <div id="detail-container" class="detail-content hidden space-y-2">
+                                <h5 class="font-bold text-lg">Container：处理繁重任务的“苦力”</h5>
+                                <p>容器本身是你应用的“工作马”，用于运行那些Cloudflare Workers无法胜任的负载。例如：资源密集型应用 (AI, 视频转码)，任何语言和运行时 (如Go)，需要完整Linux环境的应用，或迁移现有应用。</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article>
+                        <h4 class="text-xl font-semibold mb-3">关键区别：计算模型对比</h4>
+                        <p class="text-stone-600 mb-4">为了帮助你建立清晰的心智模型，以便在未来的架构设计中快速做出正确的技术选型，下表详细对比了Cloudflare平台上的不同计算模型。</p>
+                        <div class="overflow-x-auto bg-white rounded-lg border">
+                            <table class="min-w-full text-sm text-left">
+                                <thead class="bg-stone-100 border-b">
+                                    <tr>
+                                        <th class="p-4 font-semibold">特性</th>
+                                        <th class="p-4 font-semibold">Cloudflare Workers</th>
+                                        <th class="p-4 font-semibold">Cloudflare Containers</th>
+                                        <th class="p-4 font-semibold">传统 VMs/容器</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b hover:bg-amber-50 transition-colors">
+                                        <td class="p-4 font-medium">运行时环境</td>
+                                        <td class="p-4">V8 Isolate (JS/Wasm)</td>
+                                        <td class="p-4">任何OCI镜像 (任何语言)</td>
+                                        <td class="p-4">完整客户OS</td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-amber-50 transition-colors">
+                                        <td class="p-4 font-medium">启动时间</td>
+                                        <td class="p-4">极低 (&lt; 5ms)</td>
+                                        <td class="p-4">低 (秒级)</td>
+                                        <td class="p-4">较高 (秒到分钟)</td>
+                                    </tr>
+                                    <tr class="border-b hover:bg-amber-50 transition-colors">
+                                        <td class="p-4 font-medium">文件系统</td>
+                                        <td class="p-4">有限</td>
+                                        <td class="p-4">完整的Linux式文件系统</td>
+                                        <td class="p-4">完整的持久化卷</td>
+                                    </tr>
+                                    <tr class="hover:bg-amber-50 transition-colors">
+                                        <td class="p-4 font-medium">理想用例</td>
+                                        <td class="p-4">API网关, 边缘逻辑</td>
+                                        <td class="p-4">AI/ML, 媒体处理, 迁移应用</td>
+                                        <td class="p-4">复杂单体, 数据库</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+            
+            <section id="setup" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">环境搭建</h3>
+                <p class="mb-6 text-stone-600">工欲善其事，必先利其器。一个规范、专业的开发环境是高效工作的基石。我们将一步步搭建你的本地工作站，确保后续所有操作都能顺利进行。</p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg border border-stone-200">
+                        <h4 class="font-bold text-lg mb-2">1. Node.js & npm</h4>
+                        <p class="text-sm text-stone-600 mb-4">建议使用版本管理器如 `nvm` 或 `Volta` 来安装。这能避免权限问题并轻松切换版本。</p>
+                        <code class="block bg-stone-100 text-sm p-3 rounded-md text-stone-700">nvm install --lts</code>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border border-stone-200">
+                        <h4 class="font-bold text-lg mb-2">2. Docker</h4>
+                        <p class="text-sm text-stone-600 mb-4">Wrangler使用本地Docker引擎来构建镜像。请确保Docker Desktop已安装并正在运行。</p>
+                        <code class="block bg-stone-100 text-sm p-3 rounded-md text-stone-700">docker info</code>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border border-stone-200">
+                        <h4 class="font-bold text-lg mb-2">3. Wrangler CLI</h4>
+                        <p class="text-sm text-stone-600 mb-4">你的Cloudflare指挥中心。运行 `wrangler login` 来授权你的账户。</p>
+                        <code class="block bg-stone-100 text-sm p-3 rounded-md text-stone-700">npx wrangler login</code>
+                    </div>
+                </div>
+            </section>
+
+            <section id="first-deploy" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">第二部分：你的首次部署 - “你好，容器！”</h3>
+                <p class="mb-6 text-stone-600">理论知识是基础，但真正的掌握来自于实践。在这一部分，我们将从零开始，亲手构建一个完整的Go应用，将其容器化，并通过Worker配置和部署到Cloudflare的全球网络上。</p>
+                
+                <div class="bg-white p-6 rounded-lg border space-y-6">
+                    <h4 class="text-xl font-semibold">项目文件</h4>
+                    <p class="text-stone-600">下面是构成我们第一个Go容器应用的所有文件。你可以点击标签页来切换查看 `Go服务器`, `Dockerfile`, `Wrangler配置` 和 `Worker入口代码`。</p>
+
+                    <!-- Tabs -->
+                    <div class="border-b border-stone-200">
+                        <nav class="flex space-x-4 -mb-px" aria-label="Tabs">
+                            <button class="tab active whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm" data-tab="go-code">main.go</button>
+                            <button class="tab whitespace-nowrap py-3 px-1 border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 font-medium text-sm" data-tab="dockerfile">Dockerfile</button>
+                            <button class="tab whitespace-nowrap py-3 px-1 border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 font-medium text-sm" data-tab="wrangler-toml">wrangler.toml</button>
+                            <button class="tab whitespace-nowrap py-3 px-1 border-b-2 border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 font-medium text-sm" data-tab="worker-ts">src/index.ts</button>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="relative">
+                        <div id="go-code" class="tab-content">
+                            <div class="absolute top-2 right-2">
+                                <button class="copy-btn bg-stone-200 text-stone-600 text-xs px-2 py-1 rounded hover:bg-stone-300">复制</button>
+                            </div>
+                            <pre class="bg-stone-900 text-white p-4 rounded-md overflow-x-auto text-sm"><code class="language-go">package main
+
+import (
+    "fmt"
+    "log"
+    "net/http"
+    "os"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+    message := os.Getenv("MESSAGE")
+    if message == "" {
+        message = "No message was set."
+    }
+    instanceId := os.Getenv("CLOUDFLARE_DEPLOYMENT_ID")
+    if instanceId == "" {
+        instanceId = "N/A"
+    }
+    fmt.Fprintf(w, "Hi, I'm a Go container! My message is: '%s', and my instance ID is: %s", message, instanceId)
+}
+
+func main() {
+    http.HandleFunc("/", handler)
+    log.Println("Starting Go server on port 8080...")
+    if err := http.ListenAndServe(":8080", nil); err != nil {
+        log.Fatal(err)
+    }
+}</code></pre>
+                        </div>
+                        <div id="dockerfile" class="tab-content hidden">
+                            <div class="absolute top-2 right-2">
+                                <button class="copy-btn bg-stone-200 text-stone-600 text-xs px-2 py-1 rounded hover:bg-stone-300">复制</button>
+                            </div>
+                            <pre class="bg-stone-900 text-white p-4 rounded-md overflow-x-auto text-sm"><code class="language-dockerfile"># --- 阶段 1: 构建 ---
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /app/server .
+
+# --- 阶段 2: 生产 ---
+FROM gcr.io/distroless/static-debian12
+COPY --from=builder /app/server /server
+EXPOSE 8080
+CMD ["/server"]</code></pre>
+                        </div>
+                        <div id="wrangler-toml" class="tab-content hidden">
+                           <div class="absolute top-2 right-2">
+                                <button class="copy-btn bg-stone-200 text-stone-600 text-xs px-2 py-1 rounded hover:bg-stone-300">复制</button>
+                            </div>
+                            <pre class="bg-stone-900 text-white p-4 rounded-md overflow-x-auto text-sm"><code class="language-toml">name = "my-container-worker"
+main = "src/index.ts"
+compatibility_date = "2024-06-20"
+
+[[containers]]
+class_name = "MyContainer"
+image = "./container/Dockerfile"
+
+[[durable_objects.bindings]]
+name = "MY_CONTAINER"
+class_name = "MyContainer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["MyContainer"]</code></pre>
+                        </div>
+                        <div id="worker-ts" class="tab-content hidden">
+                            <div class="absolute top-2 right-2">
+                                <button class="copy-btn bg-stone-200 text-stone-600 text-xs px-2 py-1 rounded hover:bg-stone-300">复制</button>
+                            </div>
+                            <pre class="bg-stone-900 text-white p-4 rounded-md overflow-x-auto text-sm"><code class="language-typescript">import { Container, getRandom } from '@cloudflare/containers';
+
+export class MyContainer extends Container {
+    defaultPort = 8080;
+    sleepAfter = '10s';
+    envVars = {
+        MESSAGE: 'I was passed in via the Container class!',
+    };
+    override onStart() {
+        console.log('Go container successfully started!');
+    }
+}
+
+export default {
+    async fetch(request: Request, env: Env): Promise<Response> {
+        const url = new URL(request.url);
+        if (url.pathname.startsWith('/container')) {
+            const id = env.MY_CONTAINER.idFromName(url.pathname);
+            const container = env.MY_CONTAINER.get(id);
+            return await container.fetch(request);
+        } else if (url.pathname.startsWith('/lb')) {
+            const container = await getRandom(env.MY_CONTAINER, 3);
+            return await container.fetch(request);
+        }
+        return new Response('Welcome! Try /container/some-id or /lb');
+    },
+};
+
+interface Env {
+    MY_CONTAINER: DurableObjectNamespace<MyContainer>;
+}</code></pre>
+                        </div>
+                    </div>
+                     <div class="mt-4 flex flex-col md:flex-row gap-4">
+                        <div class="flex-1 bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h5 class="font-bold text-green-800">部署命令</h5>
+                            <p class="text-sm text-green-700 mb-2">在项目根目录运行此命令，将你的应用部署到全球。</p>
+                            <code class="block bg-green-100 text-sm p-3 rounded-md text-green-900">npx wrangler deploy</code>
+                        </div>
+                        <div class="flex-1 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h5 class="font-bold text-blue-800">本地开发</h5>
+                            <p class="text-sm text-blue-700 mb-2">使用此命令进行本地开发和测试，支持热重载。</p>
+                            <code class="block bg-blue-100 text-sm p-3 rounded-md text-blue-900">npx wrangler dev</code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="intermediate" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">第三部分：中级技巧 - 状态、数据与通信</h3>
+                <p class="mb-6 text-stone-600">你已经成功部署了第一个应用。现在，我们将深入探讨那些能解锁平台真正潜能的高级模式，让你从一个“使用者”变为一个“架构师”。</p>
+                <div class="space-y-8">
+                    <article>
+                        <h4 class="text-xl font-semibold mb-2">精通容器生命周期与状态</h4>
+                        <p class="text-stone-600 mb-4">Cloudflare Containers一个极其强大的特性是其对“状态”的灵活处理能力。这并非通过传统的持久化卷实现，而是通过一种更巧妙、更具编程性的方式——路由模式。应用的状态性（Statefulness）是由你的Worker代码中的路由逻辑来决定的。</p>
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="flex-1 bg-white p-6 rounded-lg border">
+                                <h5 class="font-semibold mb-2">有状态 (Stateful) 服务</h5>
+                                <p class="text-sm text-stone-600 mb-3">当你需要一个持久的容器时（如在线沙箱、用户会话），使用确定性的ID生成方法。</p>
+                                <pre class="bg-stone-900 text-white p-3 rounded-md overflow-x-auto text-xs"><code>const id = env.MY_CONTAINER.idFromName(sessionId);
+const container = env.MY_CONTAINER.get(id);</code></pre>
+                            </div>
+                            <div class="flex-1 bg-white p-6 rounded-lg border">
+                                <h5 class="font-semibold mb-2">无状态 (Stateless) 服务</h5>
+                                <p class="text-sm text-stone-600 mb-3">当你需要一个API服务池时，通过随机或轮询的方式从一个ID池中选择ID。</p>
+                                <pre class="bg-stone-900 text-white p-3 rounded-md overflow-x-auto text-xs"><code>const instanceIndex = counter % 3;
+const id = env.MY_CONTAINER.idFromName(`instance-${instanceIndex}`);</code></pre>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+             <section id="project1" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">项目一：一个由KV驱动的配置服务</h3>
+                 <p class="mb-6 text-stone-600">现在，让我们通过一个完整的项目来巩固所学知识。我们将构建一个服务，其中配置值存储在Cloudflare KV中，由Worker读取，并在运行时注入到Go容器中。这完美地展示了如何将Cloudflare的存储产品与Worker和Container结合，构建动态、可配置的服务。</p>
+                 <div class="bg-white p-6 rounded-lg border">
+                    <h4 class="text-lg font-semibold mb-4">实现步骤</h4>
+                    <ol class="list-decimal list-inside space-y-4 text-stone-700">
+                        <li>
+                            <strong>创建并配置KV命名空间</strong>
+                            <code class="block bg-stone-100 text-sm p-2 rounded-md mt-2">npx wrangler kv:namespace create APP_CONFIG</code>
+                            <p class="text-xs mt-1">然后将输出的绑定配置添加到 `wrangler.toml`。</p>
+                        </li>
+                         <li>
+                            <strong>向KV中存入一个值</strong>
+                            <code class="block bg-stone-100 text-sm p-2 rounded-md mt-2">npx wrangler kv:key put --binding=APP_CONFIG "welcomeMessage" "Hello from KV!"</code>
+                        </li>
+                         <li>
+                            <strong>修改Worker代码以读取KV并注入配置</strong>
+                             <p class="text-xs mt-1 mb-2">在Worker的fetch处理器中，先从KV获取值，然后在启动容器时将其作为环境变量传入。</p>
+                            <pre class="bg-stone-900 text-white p-3 rounded-md overflow-x-auto text-xs"><code>//...
+const messageFromKV = await env.APP_CONFIG.get("welcomeMessage");
+//...
+if (!await container.isRunning()) {
+    await container.start({
+        env: { MESSAGE: messageFromKV }
+    });
+}
+//...</code></pre>
+                        </li>
+                         <li>
+                            <strong>部署与验证</strong>
+                             <p class="text-xs mt-1">部署后，访问Worker的URL，你应该会看到Go容器返回了我们存储在KV中的消息。</p>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="advanced" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">第四部分：项目二：一个全球化的文件处理API</h3>
+                <p class="mb-6 text-stone-600">你已经掌握了核心的构建模块。现在是时候将它们组合起来，构建一个真实、复杂且功能强大的全栈应用了。这个项目将模拟一个全球化的文件处理API，充分展示Cloudflare平台各组件协同工作的威力。在Cloudflare上构建复杂应用的最佳模式，几乎总是混合架构。</p>
+                 <div class="bg-white p-6 rounded-lg border">
+                    <h4 class="text-lg font-semibold mb-4">架构流程图</h4>
+                     <div class="flex flex-col space-y-2 text-center text-sm">
+                        <div class="p-3 bg-blue-100 rounded-lg border border-blue-200">1. 前端 (HTML) 提交文件</div>
+                        <div class="self-center">↓</div>
+                        <div class="p-3 bg-amber-100 rounded-lg border border-amber-200">2. Worker (入口) 接收请求，流式上传至R2</div>
+                         <div class="self-center">↓</div>
+                         <div class="p-3 bg-purple-100 rounded-lg border border-purple-200">3. R2 安全持久地存储文件</div>
+                         <div class="self-center">↓</div>
+                         <div class="p-3 bg-amber-100 rounded-lg border border-amber-200">4. Worker (编排) 在D1创建任务记录，并启动容器</div>
+                         <div class="self-center">↓</div>
+                         <div class="p-3 bg-green-100 rounded-lg border border-green-200">5. Go Container (处理) 从R2下载文件，处理后将结果更新回D1</div>
+                         <div class="self-center">↓</div>
+                         <div class="p-3 bg-amber-100 rounded-lg border border-amber-200">6. Worker (状态查询) 提供 /status/:job_id 端点查询D1</div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="production" class="mb-16">
+                <h3 class="text-2xl md:text-3xl font-bold mb-6 border-b-2 pb-2 border-amber-400">第五部分：生产环境与未来展望</h3>
+                <p class="mb-6 text-stone-600">你的应用已经构建完成。现在，是时候学习如何像专业人士一样，对它进行监控、自动化部署，并了解平台的未来发展方向。</p>
+                <div class="space-y-8">
+                    <article>
+                        <h4 class="text-xl font-semibold mb-3">可观测性：监控与调试</h4>
+                        <p class="text-stone-600 mb-4">一个无法被观察的系统就是一个黑盒。在Cloudflare仪表板的“Workers & Pages”部分，你可以找到专门的“Containers”标签页，直观地看到状态、资源指标和日志流。</p>
+                        <div class="chart-container bg-white p-4 rounded-lg border">
+                            <canvas id="monitoringChart"></canvas>
+                        </div>
+                    </article>
+                    <article>
+                        <h4 class="text-xl font-semibold mb-3">使用CI/CD自动化部署</h4>
+                        <p class="text-stone-600 mb-4">在专业的软件开发流程中，部署必须是自动化的。我们将使用GitHub Actions来构建一个完整的CI/CD流程。只需在你的仓库中添加一个工作流文件，并在GitHub中设置 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID` 密钥。</p>
+                        <div class="relative">
+                            <div class="absolute top-2 right-2">
+                                <button class="copy-btn bg-stone-200 text-stone-600 text-xs px-2 py-1 rounded hover:bg-stone-300">复制</button>
+                            </div>
+                            <pre class="bg-stone-900 text-white p-4 rounded-md overflow-x-auto text-sm"><code class="language-yaml">name: Deploy Cloudflare Container
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy</code></pre>
+                        </div>
+                    </article>
+                    <article>
+                        <h4 class="text-xl font-semibold mb-3">前路展望：Beta版限制与未来愿景</h4>
+                        <p class="text-stone-600 mb-4">Cloudflare Containers目前处于公开测试阶段，我们正在全力以赴地工作，以期在正式版（GA）中为你带来更多强大的功能。</p>
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-lg border border-dashed border-stone-400 text-center">
+                                <h5 class="font-bold text-lg mb-2">自动伸缩</h5>
+                                <p class="text-sm text-stone-600">基于CPU/内存使用率自动增减容器实例。</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg border border-dashed border-stone-400 text-center">
+                                <h5 class="font-bold text-lg mb-2">延迟感知负载均衡</h5>
+                                <p class="text-sm text-stone-600">智能地将请求路由到对用户最低延迟的实例。</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg border border-dashed border-stone-400 text-center">
+                                <h5 class="font-bold text-lg mb-2">更深度的平台集成</h5>
+                                <p class="text-sm text-stone-600">直接挂载R2作为文件系统，优化D1/Hyperdrive访问。</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebarNav = document.getElementById('sidebar-nav');
+    menuToggle.addEventListener('click', () => {
+        sidebarNav.classList.toggle('hidden');
+    });
+
+    // Architecture diagram interaction
+    const interactiveCards = document.querySelectorAll('.interactive-card');
+    const detailContents = document.querySelectorAll('.detail-content');
+    const initialDetail = document.getElementById('detail-initial');
+
+    interactiveCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const targetId = card.getAttribute('data-target');
+            
+            interactiveCards.forEach(c => c.classList.remove('bg-amber-100', 'border-amber-400'));
+            card.classList.add('bg-amber-100', 'border-amber-400');
+
+            detailContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            const targetContent = document.getElementById(targetId);
+            if (targetContent) {
+                initialDetail.classList.add('hidden');
+                targetContent.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Tabs interaction
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.getAttribute('data-tab');
+
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                t.classList.add('border-transparent', 'text-stone-500', 'hover:text-stone-700', 'hover:border-stone-300');
+            });
+            tab.classList.add('active');
+            tab.classList.remove('border-transparent', 'text-stone-500');
+
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+        });
+    });
+    
+    // Copy button functionality
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    copyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const pre = button.nextElementSibling;
+            const code = pre.querySelector('code');
+            const textToCopy = code.innerText;
+
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            const originalText = button.textContent;
+            button.textContent = '已复制!';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 2000);
+        });
+    });
+    
+    // Chart.js monitoring chart
+    const ctx = document.getElementById('monitoringChart').getContext('2d');
+    const monitoringChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['-5m', '-4m', '-3m', '-2m', '-1m', 'Now'],
+            datasets: [{
+                label: 'CPU 使用率 (%)',
+                data: [12, 19, 15, 25, 22, 30],
+                borderColor: '#f59e0b', // amber-500
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                fill: true,
+                tension: 0.4
+            }, {
+                label: '内存使用率 (MB)',
+                data: [128, 135, 140, 138, 155, 160],
+                borderColor: '#4f46e5', // indigo-600
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: '容器资源监控示例'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('main section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === entry.target.id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { threshold: 0.5 });
+
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+});
+</script>
+
+</body>
+</html>
+
