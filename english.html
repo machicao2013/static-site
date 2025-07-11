@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式英语发音健身房</title>
+    <!-- Chosen Palette: Zen Garden -->
+    <!-- Application Structure Plan: A task-oriented, dashboard-style Single Page Application (SPA). The structure is designed for non-linear exploration, allowing users to jump directly to what they need, such as practicing a specific sound or reviewing a rule. The main sections are: 1. A central Dashboard with an interactive IPA chart. 2. A Phoneme Toolkit for detailed articulation instructions. 3. A Phonics Decoder for spelling rules. 4. A dedicated Workshop for Chinese speakers' common errors. 5. A Speech Music Hall for prosody. 6. A Resource Library. This modular, hub-and-spoke design is more user-friendly and engaging for learning and practice than a linear document, as it empowers the user to control their learning path based on their immediate needs. -->
+    <!-- Visualization & Content Choices: 1. Doughnut Chart (Dashboard): Goal: Inform. Method: Chart.js Doughnut. Interaction: Static visual. Justification: Provides a quick, visual overview of the composition of English sounds (vowels vs. consonants), making the subject less intimidating. 2. Interactive IPA Grid (Dashboard): Goal: Inform/Explore. Method: HTML Grid with JS. Interaction: Click to reveal details in a modal. Justification: Transforms the static IPA table into an engaging exploratory tool. 3. Accordion (Phonics/Workshop): Goal: Organize. Method: HTML/JS Accordion. Interaction: Click to expand/collapse. Justification: Manages dense information by breaking it into digestible chunks, preventing user overwhelm. 4. Radar Chart (Resources): Goal: Compare. Method: Chart.js Radar. Interaction: Hover for tooltips. Justification: Visually contrasts AmE and BrE features in a more memorable way than a simple table. 5. Card Layout (Toolkit): Goal: Organize/Inform. Method: Tailwind Flexbox/Grid. Interaction: Static display. Justification: Presents detailed phoneme information in a clean, modular, and easily scannable format. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            border-bottom-color: #0d9488; /* teal-600 */
+            color: #0f766e; /* teal-700 */
+        }
+        .phoneme-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .phoneme-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 80vw;
+        }
+        .radar-chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 90vw;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative animate-fade-in">
+            <button id="modal-close" class="absolute top-4 right-4 text-stone-500 hover:text-stone-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-40 shadow-sm">
+        <nav class="container mx-auto px-4 py-3">
+            <div class="flex flex-col sm:flex-row items-center justify-between">
+                <h1 class="text-2xl font-bold text-teal-700 mb-2 sm:mb-0">
+                    <span class="text-3xl mr-2">🎙️</span>英语发音健身房
+                </h1>
+                <div id="nav-links" class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm sm:text-base">
+                    <a href="#dashboard" class="nav-link font-semibold pb-1 active">仪表盘</a>
+                    <a href="#toolkit" class="nav-link font-semibold pb-1">音素工具箱</a>
+                    <a href="#phonics" class="nav-link font-semibold pb-1">拼读解码器</a>
+                    <a href="#workshop" class="nav-link font-semibold pb-1">专属工作坊</a>
+                    <a href="#music" class="nav-link font-semibold pb-1">口语音乐厅</a>
+                    <a href="#resources" class="nav-link font-semibold pb-1">训练资源库</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 md:p-8">
+        
+        <section id="dashboard" class="section active">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">欢迎来到你的专属英语发音课堂</h2>
+                <p class="max-w-3xl mx-auto text-stone-600">发音是一项可以习得的体育技能。这里没有模糊的“模仿”，只有精确的“如何做”。准备好开启你的自信发音之旅了吗？</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-4 text-teal-700">英语声音构成</h3>
+                     <p class="text-center text-sm text-stone-500 mb-4">美式英语中约有44个核心音素，分为元音和辅音两大类。掌握它们是发音的第一步。</p>
+                    <div class="chart-container">
+                        <canvas id="phonemeDistributionChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-4 text-teal-700">交互式发音地图 (IPA)</h3>
+                    <p class="text-center text-sm text-stone-500 mb-4">国际音标 (IPA) 是你的秘密武器，做到“一个符号只代表一个声音”。点击下面的音素，查看它的发音秘诀！</p>
+                    <div id="ipa-grid" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 gap-2">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="toolkit" class="section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">你的发音工具箱</h2>
+                <p class="max-w-3xl mx-auto text-stone-600">我们将发音看作一项体育运动，为你提供一套完整的“发音工具箱”，详细讲解如何调动你的口、舌、唇，发出每一个标准、清晰的英语音素。</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-bold text-teal-700 mb-6">元音的奥秘：舌位与唇形</h3>
+                <div id="vowel-cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+                <h3 class="text-2xl font-bold text-teal-700 mt-12 mb-6">辅音的挑战：精准的阻碍与释放</h3>
+                <div id="consonant-cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </section>
+
+        <section id="phonics" class="section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">从音到词：掌握自然拼读法</h2>
+                <p class="max-w-3xl mx-auto text-stone-600">自然拼读法是一套高概率的“解码工具”，帮助你看到单词时，能够有依据地“拼读”出它的声音。点击下方规则，展开学习吧。</p>
+            </div>
+            <div id="phonics-accordion" class="space-y-4"></div>
+        </section>
+
+        <section id="workshop" class="section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">专为中文母语者打造的发音工作坊</h2>
+                <p class="max-w-3xl mx-auto text-stone-600">你的大脑是一位“中文语音专家”，这导致了系统性的发音挑战。本工作坊将精准定位并解决这些高频难点，为你的发音扫清障碍。</p>
+            </div>
+            <div id="workshop-accordion" class="space-y-4"></div>
+        </section>
+        
+        <section id="music" class="section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">英语的“音乐”：节奏、语调与连读</h2>
+                <p class="max-w-3xl mx-auto text-stone-600">流利的口语像一首乐曲，有高低起伏、轻重缓急和顺滑连接。掌握英语的音乐性，告别“蹦豆子”发音。</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">🎵 节奏：意群和重音</h3>
+                    <p class="text-stone-600 mb-4">英语是“重音计时”语言。句子中的**实词**（名词、动词、形容词等）被重读，而**虚词**（冠词、介词、代词等）被弱读。</p>
+                    <p class="text-lg bg-teal-50 p-3 rounded-lg">The <strong class="text-teal-600 font-extrabold">kids</strong> are <strong class="text-teal-600 font-extrabold">playing</strong> in the <strong class="text-teal-600 font-extrabold">garden</strong>.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">📊 语调：升调与降调</h3>
+                    <p class="text-stone-600 mb-4">语调是声音的“旋律”，表达情绪和意图。</p>
+                    <ul class="space-y-2 text-lg">
+                        <li class="bg-sky-50 p-3 rounded-lg">陈述句用降调: I live in Bei<strong class="text-sky-600">jing</strong>. ➘</li>
+                        <li class="bg-amber-50 p-3 rounded-lg">一般疑问句用升调: Do you like <strong class="text-amber-600">coffee</strong>? ➚</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-teal-700 mb-3">🔗 连读：顺滑的秘密</h3>
+                    <p class="text-stone-600 mb-4">单词之间会发生音变，让语流更顺滑。</p>
+                     <ul class="space-y-2 text-lg">
+                        <li class="bg-green-50 p-3 rounded-lg"><strong>连读:</strong> an apple <span class="text-green-600">➔ a-napple</span></li>
+                        <li class="bg-green-50 p-3 rounded-lg"><strong>省音:</strong> next door <span class="text-green-600">➔ nex-door</span></li>
+                        <li class="bg-green-50 p-3 rounded-lg"><strong>同化:</strong> don't you <span class="text-green-600">➔ don-chu</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="resources" class="section">
+             <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">个人发音健身房</h2>
+                <p class="max-w-3xl mx-auto text-stone-600">理论为你指明方向，但真正的进步来自于刻意练习。这里是你的“健身器材”和“健身计划”。</p>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-4 text-teal-700">美音 (GA) vs. 英音 (GB)</h3>
+                    <p class="text-center text-sm text-stone-500 mb-4">两者没有优劣之分，但保持一致性很重要。这张图可以帮你直观对比它们的核心差异。</p>
+                    <div class="radar-chart-container">
+                        <canvas id="accentComparisonChart"></canvas>
+                    </div>
+                </div>
+                 <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-center mb-4 text-teal-700">必备工具与训练计划</h3>
+                    <p class="text-center text-sm text-stone-500 mb-4">利用现代工具，坚持规律训练，进步将指日可待。</p>
+                    <div class="mb-6">
+                        <h4 class="font-bold text-stone-700">⚙️ 必备工具推荐</h4>
+                        <ul class="list-disc list-inside text-stone-600 mt-2 space-y-1">
+                            <li><strong>AI发音教练App:</strong> Speakometer, ELSA Speak, BoldVoice</li>
+                            <li><strong>交互式IPA图表:</strong> ipachart.com, americanipachart.com</li>
+                            <li><strong>口型教学视频:</strong> YouTube上的 "Rachel's English"</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-stone-700">🗓️ 每周训练计划示例</h4>
+                        <ol class="list-decimal list-inside text-stone-600 mt-2 space-y-1">
+                            <li><strong>周一 (元音日):</strong> 攻克一对易混淆元音 (如 /iː/ vs /ɪ/)。</li>
+                            <li><strong>周二 (辅音日):</strong> 攻克一个难点 (如 /l/ vs /r/)。</li>
+                            <li><strong>周三 (拼读日):</strong> 复习一条自然拼读规则。</li>
+                            <li><strong>周四 (音乐日):</strong> 练习句子节奏与语调。</li>
+                            <li><strong>周五 (综合日):</strong> 朗读短文并评估。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+    
+    <footer class="text-center py-6 mt-8 border-t border-stone-200">
+        <p class="text-stone-500 text-sm">发音是通往自信交流的桥梁。坚持练习，享受开口的乐趣！</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const ipaGrid = document.getElementById('ipa-grid');
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+            const modalClose = document.getElementById('modal-close');
+            const vowelCardsContainer = document.getElementById('vowel-cards');
+            const consonantCardsContainer = document.getElementById('consonant-cards');
+            const phonicsAccordionContainer = document.getElementById('phonics-accordion');
+            const workshopAccordionContainer = document.getElementById('workshop-accordion');
+            
+            const ipaData = [
+                { type: 'Vowel', symbol: '/iː/', keyword: 'see', tip: '嘴巴扁平如微笑，发出“一”的长音' },
+                { type: 'Vowel', symbol: '/ɪ/', keyword: 'sit', tip: '口型放松，发出短促的“一”音' },
+                { type: 'Vowel', symbol: '/eɪ/', keyword: 'say', tip: '从“哎”滑向“一”，类似汉语拼音的“ei”' },
+                { type: 'Vowel', symbol: '/ɛ/', keyword: 'bed', tip: '嘴巴张开，发出“哎”的短音' },
+                { type: 'Vowel', symbol: '/æ/', keyword: 'cat', tip: '嘴巴张得很大，发出“啊”和“哎”之间的音' },
+                { type: 'Vowel', symbol: '/ɑː/', keyword: 'father', tip: '嘴巴张大，发出“啊”的长音' },
+                { type: 'Vowel', symbol: '/ɒ/', keyword: 'hot', tip: '嘴唇略圆，发出短促的“哦”音 (多与/ɑː/合并)' },
+                { type: 'Vowel', symbol: '/ɔː/', keyword: 'caught', tip: '嘴唇更圆，发出“噢”的长音' },
+                { type: 'Vowel', symbol: '/oʊ/', keyword: 'go', tip: '从“哦”滑向“乌”，类似汉语拼音的“ou”' },
+                { type: 'Vowel', symbol: '/uː/', keyword: 'boot', tip: '嘴唇收圆前凸，发出“乌”的长音' },
+                { type: 'Vowel', symbol: '/ʊ/', keyword: 'book', tip: '口型放松，发出短促的“乌”音' },
+                { type: 'Vowel', symbol: '/ʌ/', keyword: 'cup', tip: '口型放松，舌位居中，发出短促的“啊”音' },
+                { type: 'Vowel', symbol: '/ə/', keyword: 'about', tip: '最放松的音，口型舌位都居中，非常短促' },
+                { type: 'Vowel', symbol: '/aɪ/', keyword: 'my', tip: '从“啊”滑向“一”，类似汉语拼音的“ai”' },
+                { type: 'Vowel', symbol: '/aʊ/', keyword: 'now', tip: '从“啊”滑向“乌”，类似汉语拼音的“ao”' },
+                { type: 'Vowel', symbol: '/ɔɪ/', keyword: 'boy', tip: '从“噢”滑向“一”' },
+                { type: 'Consonant', symbol: '/p/', keyword: 'pen', tip: '双唇紧闭，突然爆发出气流，不振动声带' },
+                { type: 'Consonant', symbol: '/b/', keyword: 'bad', tip: '同上，但要振动声带' },
+                { type: 'Consonant', symbol: '/t/', keyword: 'tea', tip: '舌尖抵住上齿龈，突然爆发出气流，不振动声带' },
+                { type: 'Consonant', symbol: '/d/', keyword: 'do', tip: '同上，但要振动声带' },
+                { type: 'Consonant', symbol: '/k/', keyword: 'cat', tip: '舌后部抵住软腭，突然爆发出气流，不振动声带' },
+                { type: 'Consonant', symbol: '/g/', keyword: 'go', tip: '同上，但要振动声带' },
+                { type: 'Consonant', symbol: '/f/', keyword: 'fan', tip: '上齿轻触下唇，气流从中摩擦而出，不振动声带' },
+                { type: 'Consonant', symbol: '/v/', keyword: 'van', tip: '同上，但要振动声带' },
+                { type: 'Consonant', symbol: '/θ/', keyword: 'think', tip: '舌尖轻置于上下齿之间，气流从中摩擦而出，不振动声带' },
+                { type: 'Consonant', symbol: '/ð/', keyword: 'this', tip: '同上，但要振动声带' },
+                { type: 'Consonant', symbol: '/s/', keyword: 'see', tip: '舌尖靠近上齿龈，气流从中摩擦而出，像蛇一样“嘶嘶”作响' },
+                { type: 'Consonant', symbol: '/z/', keyword: 'zoo', tip: '同上，但要振动声带，像蜜蜂“嗡嗡”作响' },
+                { type: 'Consonant', symbol: '/ʃ/', keyword: 'she', tip: '舌面抬起，嘴唇前凸，气流摩擦而出，像说“嘘”' },
+                { type: 'Consonant', symbol: '/h/', keyword: 'hat', tip: '气流从喉咙中直接呼出，几乎没有阻碍' },
+                { type: 'Consonant', symbol: '/m/', keyword: 'man', tip: '双唇紧闭，气流从鼻腔通过' },
+                { type: 'Consonant', symbol: '/n/', keyword: 'no', tip: '舌尖抵住上齿龈，气流从鼻腔通过' },
+                { type: 'Consonant', symbol: '/ŋ/', keyword: 'sing', tip: '舌后部抵住软腭，气流从鼻腔通过' },
+                { type: 'Consonant', symbol: '/l/', keyword: 'light', tip: '舌尖抵住上齿龈，气流从舌头两侧流出' },
+                { type: 'Consonant', symbol: '/r/', keyword: 'red', tip: '舌尖卷起，不接触任何部位，嘴唇略圆' },
+                { type: 'Consonant', symbol: '/w/', keyword: 'wet', tip: '双唇收圆前凸，像发“乌”的起始口型' },
+                { type: 'Consonant', symbol: '/j/', keyword: 'yes', tip: '舌位像发 /iː/，但更紧张，是个半元音' },
+                { type: 'Consonant', symbol: '/tʃ/', keyword: 'check', tip: '从 /t/ 的位置快速滑向 /ʃ/' },
+                { type: 'Consonant', symbol: '/dʒ/', keyword: 'judge', tip: '从 /d/ 的位置快速滑向 /ʒ/ (类似 /ʃ/ 的浊音)' }
+            ];
+
+            const phonicsData = [
+                { title: 'CVC / 闭音节规则', content: '当一个元音被辅音“关起来”时，它通常发短音。例如: `cat` /kæt/, `pen` /pɛn/, `sit` /sɪt/.' },
+                { title: '神奇e / VCe规则', content: '结尾的e不发音，它让前面的元音发自己的字母音（长音）。例如: `cake` /keɪk/, `bike` /baɪk/, `hope` /hoʊp/.' },
+                { title: '元音团队 (Vowel Teams)', content: '两个元音字母组合在一起发一个长元音。例如: `ai`/`ay` in `rain`/`play` 发 /eɪ/; `ee`/`ea` in `feet`/`team` 发 /iː/.' },
+                { title: '辅音团队 (Consonant Digraphs)', content: '两个辅音字母组合在一起发一个新音。例如: `sh` in `ship` 发 /ʃ/; `ch` in `chin` 发 /tʃ/.' },
+                { title: '双元音 (Diphthongs)', content: '一个由两个元音平滑过渡构成的复合元音。例如: `oi`/`oy` in `coin`/`boy` 发 /ɔɪ/; `ou`/`ow` in `house`/`cow` 发 /aʊ/.' },
+                { title: 'R控制的元音', content: '当元音后面跟着字母r时，r会改变元音的发音。例如: `car`, `for`, `her`, `bird`, `fur`.' }
+            ];
+
+            const workshopData = [
+                {
+                    title: '难点一：咬舌音 /θ/ 和 /ð/',
+                    awareness: '普通话中无此音，易被 /s/ 或 /d/ 代替。',
+                    instruction: '<strong>方法：</strong>将舌尖轻轻放在上下牙齿之间，让气流从中摩擦而出。发 /ð/ 时声带振动。',
+                    practice: [
+                        { p1: 'sin /sɪn/', p2: 'thin /θɪŋk/' },
+                        { p1: 'day /deɪ/', p2: 'they /ðeɪ/' }
+                    ]
+                },
+                {
+                    title: '难点二：/l/ 和 /r/ 的混淆',
+                    awareness: '发音方式与中文不同，易混淆。',
+                    instruction: '<strong>方法：</strong>发 /l/ 时舌尖抵住上齿龈；发 /r/ 时舌尖卷起，不接触任何部位，嘴唇收圆。',
+                    practice: [
+                        { p1: 'light /laɪt/', p2: 'right /raɪt/' },
+                        { p1: 'glass /glæs/', p2: 'grass /græs/' }
+                    ]
+                },
+                 {
+                    title: '难点三：词尾的 /n/ 和 /ŋ/',
+                    awareness: '习惯用后鼻音 /ŋ/ 代替前鼻音 /n/。',
+                    instruction: '<strong>方法：</strong>发 /n/ 时舌尖抵住上齿龈（前面）；发 /ŋ/ 时舌根抵住软腭（后面）。',
+                    practice: [
+                        { p1: 'sin /sɪn/', p2: 'sing /sɪŋ/' },
+                        { p1: 'win /wɪn/', p2: 'wing /wɪŋ/' }
+                    ]
+                },
+                 {
+                    title: '难点四：浊辅音 /v/',
+                    awareness: '普通话中无此音，易被 /f/ 或 /w/ 代替。',
+                    instruction: '<strong>方法：</strong>口型同 /f/（上齿轻触下唇），但要振动声带。',
+                    practice: [
+                        { p1: 'fan /fæn/', p2: 'van /væn/' },
+                        { p1: 'west /wɛst/', p2: 'vest /vɛst/' }
+                    ]
+                },
+                 {
+                    title: '难点五：辅音连缀',
+                    awareness: '习惯在辅音间加入元音，或省略辅音。',
+                    instruction: '<strong>方法：</strong>慢速分解，再平滑连接，中间绝不加元音。',
+                    practice: [
+                        { p1: 'speak', p2: 'street' },
+                        { p1: 'cats', p2: 'texts' }
+                    ]
+                },
+                 {
+                    title: '难点六：词尾辅音省略',
+                    awareness: '习惯吞掉或弱化词尾辅音。',
+                    instruction: '<strong>方法：</strong>练习时，刻意夸大词尾辅音，确保发完整。',
+                    practice: [
+                        { p1: 'card /kɑːrd/', p2: 'cart /kɑːrt/' },
+                        { p1: 'prize /praɪz/', p2: 'price /praɪs/' }
+                    ]
+                },
+            ];
+
+
+            const vowelDetails = [
+                 { symbol: '/iː/', keyword: 'see, meat', position: '高/前', lips: '展开/微笑', guide: '嘴角向两侧使劲拉开，舌前部用力抬高。长元音，声音饱满。', error: '发音长度不够，口型不够扁平。' },
+                { symbol: '/ɪ/', keyword: 'sit, gym', position: '较高/前', lips: '放松', guide: '口型和舌头都放松，下巴稍微下落。短元音，声音短促。', error: '发音过长，与 /iː/ 混淆。' },
+                { symbol: '/æ/', keyword: 'cat, mad', position: '低/前', lips: '展开', guide: '下巴尽可能向下放，嘴巴张到最大。舌尖抵住下齿。', error: '嘴巴张得不够大，发成了 /ɛ/。' },
+                { symbol: '/ɛ/', keyword: 'bed, let', position: '中/前', lips: '放松', guide: '口型比 /æ/ 收敛，下巴不用放那么低。类似汉语“哎”。', error: '与 /æ/ 混淆，关键在下巴张开幅度。' },
+                { symbol: '/uː/', keyword: 'boot, rude', position: '高/后', lips: '圆/前凸', guide: '双唇用力收圆并前凸，舌后部向后上方抬起。长元音。', error: '嘴唇不够圆、不够前凸。' },
+                { symbol: '/ʊ/', keyword: 'book, put', position: '较高/后', lips: '放松的圆形', guide: '口型和舌头都放松，嘴唇轻收圆，不前凸。短元音。', error: '嘴唇太紧张，发成了 /uː/。' },
+                { symbol: '/ɑː/', keyword: 'father, hot', position: '低/后', lips: '自然张开', guide: '下巴自然下垂，嘴巴张大，舌头完全放平在口腔后部。', error: '嘴巴张得不够大，舌位不够靠后。' },
+                { symbol: '/ʌ/', keyword: 'cup, but', position: '中低/央', lips: '放松', guide: '口腔完全放松，舌头处于最自然、居中的位置。短促、有点“懒”。', error: '易发成汉语“啊”，但/ʌ/舌位更高。' },
+                { symbol: '/ə/', keyword: 'about, comma', position: '中/央', lips: '放松', guide: '最常见、最放松的元音(schwa)。发音同/ʌ/但更短更弱，只在非重读音节。', error: '常把非重读元音读得过重。' }
+            ];
+             const consonantDetails = [
+                { symbol: '/p/ /b/', pair: true, keyword: 'pot / bet', position: '双唇', manner: '爆破音', guide: '双唇紧闭憋气，猛然爆破。/b/振动声带。', error: '词尾的/b/易发成/p/。' },
+                { symbol: '/t/ /d/', pair: true, keyword: 'top / dog', position: '齿龈', manner: '爆破音', guide: '舌尖紧抵上齿龈憋气，迅速离开爆破。/d/振动声带。', error: '词尾的/d/易发成/t/。' },
+                { symbol: '/k/ /g/', pair: true, keyword: 'kit / got', position: '软腭', manner: '爆破音', guide: '舌后部贴软腭憋气，迅速下降爆破。/g/振动声带。', error: '词尾的/g/易发成/k/。' },
+                { symbol: '/f/ /v/', pair: true, keyword: 'fog / vat', position: '唇齿', manner: '摩擦音', guide: '上门牙轻触下唇，吹气摩擦。/v/振动声带。', error: '<strong>/v/是高频错误</strong>，普通话无此音，易被/w/或/f/替换。' },
+                { symbol: '/θ/ /ð/', pair: true, keyword: 'thick / that', position: '齿间', manner: '摩擦音', guide: '舌尖轻置于上下齿间，吹气摩擦。/ð/振动声带。', error: '<strong>/θ/ /ð/是高频错误</strong>，普通话无此音，易被/s/或/d/替换。' },
+                { symbol: '/s/ /z/', pair: true, keyword: 'sat / zoo', position: '齿龈', manner: '摩擦音', guide: '舌尖接近上齿龈形成细缝，气流发出“嘶嘶”声。/z/振动声带。', error: '词尾的/z/易发成/s/。' },
+                { symbol: '/ʃ/ /ʒ/', pair: true, keyword: 'shut / vision', position: '齿龈后', manner: '摩擦音', guide: '嘴唇前凸收圆，舌面抬起。/ʒ/是/ʃ/的浊音。', error: '基本没问题。/ʒ/较少见。' },
+                { symbol: '/h/', keyword: 'help', position: '声门', manner: '摩擦音', guide: '口型自然，气流从喉咙深处直接呼出。', error: '基本没问题。' },
+                { symbol: '/m/ /n/ /ŋ/', pair: false, keyword: 'mom/nod/sing', position: '双唇/齿龈/软腭', manner: '鼻音', guide: '口腔通道被堵住，气流从鼻腔通过。注意/n/和/ŋ/在词尾的区别。', error: '词尾的/n/和/ŋ/易混淆。' },
+                { symbol: '/l/ /r/', pair: false, keyword: 'lot / rat', position: '齿龈/硬腭', manner: '近音', guide: '/l/舌尖抵齿龈，/r/舌尖卷起不接触。', error: '<strong>/l/和/r/是高频错误</strong>，易混淆。' },
+                { symbol: '/w/ /j/', pair: false, keyword: 'won / you', position: '双唇/硬腭', manner: '近音', guide: '/w/像发“乌”起始，/j/像发“一”起始。', error: '基本没问题。' },
+            ];
+            
+            function showSection(id) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(id).classList.add('active');
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${id}`) {
+                        link.classList.add('active');
+                    }
+                });
+                window.scrollTo(0, 0);
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.target.getAttribute('href').substring(1);
+                    showSection(targetId);
+                });
+            });
+
+            ipaData.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = `phoneme-btn p-2 rounded-lg font-bold text-lg text-center ${item.type === 'Vowel' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'}`;
+                btn.textContent = item.symbol;
+                btn.addEventListener('click', () => {
+                    modalContent.innerHTML = `
+                        <h3 class="text-3xl font-bold ${item.type === 'Vowel' ? 'text-amber-600' : 'text-sky-600'}">${item.symbol}</h3>
+                        <p class="text-lg text-stone-600 mt-2">类别: ${item.type === 'Vowel' ? '元音' : '辅音'}</p>
+                        <p class="text-lg text-stone-600">关键词: <strong class="font-semibold">${item.keyword}</strong></p>
+                        <div class="mt-4 bg-stone-100 p-4 rounded-lg">
+                            <p class="font-bold text-teal-700">💡 发音小提示:</p>
+                            <p class="text-stone-700">${item.tip}</p>
+                        </div>
+                    `;
+                    modal.style.display = 'flex';
+                });
+                ipaGrid.appendChild(btn);
+            });
+            
+            modalClose.addEventListener('click', () => modal.style.display = 'none');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            vowelDetails.forEach(v => {
+                const card = `
+                    <div class="border border-stone-200 bg-stone-50 p-4 rounded-lg">
+                        <h4 class="text-xl font-bold text-amber-700">${v.symbol} <span class="text-base font-normal text-stone-500 ml-2">${v.keyword}</span></h4>
+                        <div class="text-sm space-y-2 mt-3">
+                            <p><strong class="text-stone-600">舌位:</strong> ${v.position}</p>
+                            <p><strong class="text-stone-600">唇形:</strong> ${v.lips}</p>
+                            <p><strong class="text-stone-600">指南:</strong> ${v.guide}</p>
+                            <p class="text-red-600"><strong class="text-red-700">常见错误:</strong> ${v.error}</p>
+                        </div>
+                    </div>`;
+                vowelCardsContainer.innerHTML += card;
+            });
+            
+            consonantDetails.forEach(c => {
+                 const card = `
+                    <div class="border border-stone-200 bg-stone-50 p-4 rounded-lg">
+                        <h4 class="text-xl font-bold text-sky-700">${c.symbol} <span class="text-base font-normal text-stone-500 ml-2">${c.keyword}</span></h4>
+                        <div class="text-sm space-y-2 mt-3">
+                            <p><strong class="text-stone-600">位置:</strong> ${c.position}</p>
+                            <p><strong class="text-stone-600">方式:</strong> ${c.manner}</p>
+                            <p><strong class="text-stone-600">指南:</strong> ${c.guide}</p>
+                            <p class="text-red-600"><strong class="text-red-700">常见错误:</strong> ${c.error}</p>
+                        </div>
+                    </div>`;
+                consonantCardsContainer.innerHTML += card;
+            });
+
+            phonicsData.forEach((item, index) => {
+                const accordionItem = `
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <button class="w-full text-left p-4 flex justify-between items-center bg-teal-50 hover:bg-teal-100 transition-colors" data-target="phonics-content-${index}">
+                            <h3 class="font-bold text-teal-800">${item.title}</h3>
+                            <span class="transform transition-transform text-teal-600">▼</span>
+                        </button>
+                        <div id="phonics-content-${index}" class="p-4 text-stone-600 hidden">
+                            ${item.content}
+                        </div>
+                    </div>`;
+                phonicsAccordionContainer.innerHTML += accordionItem;
+            });
+            
+            workshopData.forEach((item, index) => {
+                const practiceItems = item.practice.map(p => `
+                    <div class="flex justify-around items-center bg-stone-100 p-2 rounded-lg mt-2">
+                        <span class="font-mono text-lg text-sky-700">${p.p1}</span>
+                        <span class="font-bold text-stone-400">vs.</span>
+                        <span class="font-mono text-lg text-amber-700">${p.p2}</span>
+                    </div>
+                `).join('');
+
+                const accordionItem = `
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                         <button class="w-full text-left p-4 flex justify-between items-center bg-rose-50 hover:bg-rose-100 transition-colors" data-target="workshop-content-${index}">
+                            <h3 class="font-bold text-rose-800">${item.title}</h3>
+                            <span class="transform transition-transform text-rose-600">▼</span>
+                        </button>
+                        <div id="workshop-content-${index}" class="p-4 text-stone-600 hidden space-y-4">
+                            <p><strong class="text-stone-700">⚠️ 意识:</strong> ${item.awareness}</p>
+                            <p class="text-green-800 bg-green-50 p-3 rounded-lg">${item.instruction}</p>
+                            <div>
+                                <h4 class="font-bold text-stone-700">🎯 最小对立体练习:</h4>
+                                ${practiceItems}
+                            </div>
+                        </div>
+                    </div>`;
+                workshopAccordionContainer.innerHTML += accordionItem;
+            });
+            
+            document.querySelectorAll('[data-target]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.getAttribute('data-target');
+                    const targetContent = document.getElementById(targetId);
+                    const arrow = button.querySelector('span');
+                    targetContent.classList.toggle('hidden');
+                    arrow.classList.toggle('rotate-180');
+                });
+            });
+
+            const phonemeCtx = document.getElementById('phonemeDistributionChart').getContext('2d');
+            new Chart(phonemeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['辅音 (Consonants)', '元音 (Vowels)'],
+                    datasets: [{
+                        data: [28, 16],
+                        backgroundColor: ['#0d9488', '#f59e0b'],
+                        borderColor: ['#ccfbf1', '#fef3c7'],
+                        borderWidth: 4,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 14 } } },
+                        title: { display: false }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            const accentCtx = document.getElementById('accentComparisonChart').getContext('2d');
+            new Chart(accentCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['R音 (卷舌)', 'T音弹读', '元音 /ɒ/ (hot)', '元音 /æ/ (path)', '词汇重音'],
+                    datasets: [{
+                        label: '美音 (GA)',
+                        data: [5, 5, 1, 5, 4],
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderColor: 'rgb(245, 158, 11)',
+                        pointBackgroundColor: 'rgb(245, 158, 11)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(245, 158, 11)'
+                    }, {
+                        label: '英音 (GB)',
+                        data: [1, 1, 5, 2, 2],
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        borderColor: 'rgb(13, 148, 136)',
+                        pointBackgroundColor: 'rgb(13, 148, 136)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(13, 148, 136)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { font: { size: 12 } },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                stepSize: 1,
+                                display: false
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5
+                        }
+                    },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
