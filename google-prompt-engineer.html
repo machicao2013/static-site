@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Vertex AI 提示工程权威指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+        
+        :root {
+            --primary: #1a73e8;
+            --secondary: #5f6368;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            scroll-behavior: smooth;
+            color: #202124;
+            line-height: 1.75;
+        }
+
+        .sidebar-active {
+            color: var(--primary);
+            border-left: 2px solid var(--primary);
+            padding-left: 1rem;
+            font-weight: 600;
+        }
+
+        pre {
+            background-color: #f1f3f4;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .callout {
+            border-left: 4px solid;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .callout-info { background: #e8f0fe; border-color: #1a73e8; }
+        .callout-warning { background: #fef7e0; border-color: #f9ab00; }
+        .callout-example { background: #f1f3f4; border-color: #5f6368; }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid #dadce0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #dadce0;
+            vertical-align: top;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background-color: #fafafa; }
+
+        .term-en {
+            color: #5f6368;
+            font-size: 0.9em;
+            font-weight: 400;
+            margin-left: 0.25rem;
+        }
+
+        h1, h2, h3 { color: #174ea6; font-weight: 700; }
+    </style>
+</head>
+<body class="bg-white">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white border-b border-gray-200 py-4 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-brain text-blue-600 text-2xl"></i>
+                <span class="text-xl font-bold text-gray-800">Vertex AI 指南</span>
+            </div>
+            <nav class="hidden md:flex space-x-8 text-sm font-medium text-gray-600">
+                <a href="#intro" class="hover:text-blue-600">引言</a>
+                <a href="#config" class="hover:text-blue-600">模型配置</a>
+                <a href="#techniques" class="hover:text-blue-600">提示技术</a>
+                <a href="#advanced" class="hover:text-blue-600">高级推理</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col lg:flex-row gap-12">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="hidden lg:block w-64 flex-shrink-0">
+            <div class="sticky top-24 space-y-4">
+                <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">目录</h4>
+                <nav class="flex flex-col space-y-2 text-sm text-gray-600">
+                    <a href="#intro" class="hover:text-blue-600 py-1 transition-all">1. 引言与综述</a>
+                    <a href="#config" class="hover:text-blue-600 py-1 transition-all">2. 核心机制与配置</a>
+                    <a href="#sampling" class="pl-4 hover:text-blue-600 py-1 border-l border-gray-100">采样控制策略</a>
+                    <a href="#techniques" class="hover:text-blue-600 py-1 transition-all">3. 基础提示技术</a>
+                    <a href="#advanced" class="hover:text-blue-600 py-1 transition-all">4. 高级推理与逻辑</a>
+                    <a href="#code" class="hover:text-blue-600 py-1 transition-all">5. 代码生成辅助</a>
+                    <a href="#best-practices" class="hover:text-blue-600 py-1 transition-all">6. 最佳实践</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-4xl">
+            
+            <!-- Title Section -->
+            <section class="mb-12">
+                <p class="text-blue-600 font-semibold mb-2 uppercase tracking-wide">Google Cloud 权威指南</p>
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                    Vertex AI 提示工程权威指南<br>
+                    <span class="text-gray-500 text-2xl md:text-3xl font-normal italic">Principles, Techniques, and Best Practices</span>
+                </h1>
+                <div class="flex items-center space-x-4 text-gray-500 text-sm mb-8 border-b pb-8">
+                    <span><i class="far fa-user mr-2"></i>Lee Boonstra</span>
+                    <span><i class="far fa-calendar-alt mr-2"></i>2025年2月修订</span>
+                    <span><i class="fas fa-tag mr-2"></i>生成式 AI</span>
+                </div>
+
+                <div id="intro" class="prose prose-blue max-w-none">
+                    <h2 class="text-3xl mb-4">1. 引言与综述 <span class="term-en">(Introduction & Overview)</span></h2>
+                    <p>
+                        在生成式人工智能（Generative AI）迅速重塑技术格局的背景下，<span class="font-semibold">提示工程 (Prompt Engineering)</span> 已从一种边缘的技巧演变为一门核心的系统工程学科。本报告基于 Google Cloud 发布的权威白皮书，旨在为开发者和研究人员提供一套详尽的技术指南。
+                    </p>
+                    <p>
+                        提示（Prompt）作为人类意图与机器执行之间的桥梁，其质量直接决定了模型输出的准确性、相关性与安全性。一个有效的提示受到多维因素的制约：模型架构、训练数据分布、推理配置参数（如 Temperature）以及提示本身的结构。
+                    </p>
+                    <div class="callout callout-info">
+                        <strong>核心定义：</strong> 提示工程是一门通过反复试验（Tinkering）来优化输入，从而引导大型语言模型 (LLM) 生成准确结果的经验科学。
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2 -->
+            <section id="config" class="mb-16">
+                <h2 class="text-3xl mb-6">2. 大型语言模型的核心机制与配置 <span class="term-en">(Core Mechanisms)</span></h2>
+                <p class="mb-4">
+                    LLM 本质上是一个基于概率的预测引擎。它预测序列中的下一个 <span class="font-bold">标记 (Token)</span>。这一过程是自回归的，即模型将预测出的 Token 添加到序列末尾作为后续预测的依据。
+                </p>
+
+                <h3 class="text-2xl mt-8 mb-4">2.1 输出长度控制 <span class="term-en">(Output Length)</span></h3>
+                <p>
+                    减少输出长度限制并不等同于让模型变“简洁”，而只是在达到上限时强制截断。合理预估 Token 数量对于控制延迟和成本至关重要。
+                </p>
+
+                <h3 id="sampling" class="text-2xl mt-8 mb-4">2.2 采样控制策略 <span class="term-en">(Sampling Controls)</span></h3>
+                <p>配置参数是平衡模型“创造性”与“准确性”的关键杠杆：</p>
+
+                <div class="space-y-6 mt-4">
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-lg text-blue-700">温度参数 (Temperature)</h4>
+                        <p class="text-sm mt-2">控制采样的随机性。低温度（0-0.2）趋向于确定性输出，高温度（0.7+）激发创造力。</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-lg text-blue-700">Top-P (核采样 / Nucleus Sampling)</h4>
+                        <p class="text-sm mt-2">基于累积概率阈值选择 Token 集合。它比静态的 Top-K 更具动态适应性，在连贯性与丰富性之间取得平衡。</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>任务类型 (Task)</th>
+                                <th>Temperature</th>
+                                <th>Top-P</th>
+                                <th>策略说明 (Rationale)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>事实性问答 / 数学</td>
+                                <td class="font-mono text-blue-600">0.0</td>
+                                <td class="font-mono text-blue-600">0.1 - 0.5</td>
+                                <td>追求绝对确定性，消除随机性防止事实错误。</td>
+                            </tr>
+                            <tr>
+                                <td>代码生成</td>
+                                <td class="font-mono text-blue-600">0.1 - 0.2</td>
+                                <td class="font-mono text-blue-600">0.95</td>
+                                <td>语法严格，容错率低，需保持逻辑严密。</td>
+                            </tr>
+                            <tr>
+                                <td>创意写作</td>
+                                <td class="font-mono text-blue-600">0.7 - 1.0</td>
+                                <td class="font-mono text-blue-600">0.99</td>
+                                <td>鼓励探索罕见词汇，最大化创造力。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 3 -->
+            <section id="techniques" class="mb-16">
+                <h2 class="text-3xl mb-6">3. 基础提示技术 <span class="term-en">(Basic Prompting)</span></h2>
+                
+                <h3 class="text-2xl mb-4">3.1 零样本与少样本提示 <span class="term-en">(Zero-shot & Few-shot)</span></h3>
+                <p>
+                    <span class="font-semibold">零样本提示 (Zero-shot)</span> 依赖模型的预训练知识。而当任务复杂时，提供示例的 <span class="font-semibold">少样本提示 (Few-shot)</span> 利用了模型的<span class="italic">上下文学习 (In-Context Learning)</span> 能力。
+                </p>
+
+                <div class="callout callout-example">
+                    <p class="font-bold text-gray-700 mb-2">Few-shot 示例：JSON 解析</p>
+                    <pre class="text-sm">解析披萨订单：
+示例：我要一个小号芝士披萨。
+JSON: {"size": "small", "type": "cheese"}
+
+示例：来一个大号腊肠披萨。
+JSON: {"size": "large", "type": "pepperoni"}
+
+当前请求：我要一个中号素食披萨。
+JSON:</pre>
+                </div>
+
+                <h3 class="text-2xl mt-8 mb-4">3.2 系统与角色提示 <span class="term-en">(System & Role Prompting)</span></h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>系统提示 (System Prompt)：</strong> 设定“出厂设置”，定义任务背景和安全边界。</li>
+                    <li><strong>角色提示 (Role Prompt)：</strong> 赋予模型特定的人格或专业视角（如“资深架构师”）。</li>
+                </ul>
+            </section>
+
+            <!-- Section 4 -->
+            <section id="advanced" class="mb-16">
+                <h2 class="text-3xl mb-6">4. 高级推理与逻辑构建 <span class="term-en">(Advanced Reasoning)</span></h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border p-5 rounded-lg">
+                        <h4 class="font-bold text-blue-800 border-b pb-2 mb-3">思维链 (Chain of Thought, CoT)</h4>
+                        <p class="text-sm">引导模型显式生成推理路径。“让我们一步步思考”是激活 CoT 的经典触发词。</p>
+                    </div>
+                    <div class="border p-5 rounded-lg">
+                        <h4 class="font-bold text-blue-800 border-b pb-2 mb-3">回退提示 (Step-back Prompting)</h4>
+                        <p class="text-sm">先提取抽象原则（回退一步），再解决具体问题。显著提升 STEM 领域准确率。</p>
+                    </div>
+                    <div class="border p-5 rounded-lg">
+                        <h4 class="font-bold text-blue-800 border-b pb-2 mb-3">推理与行动 (ReAct)</h4>
+                        <p class="text-sm">结合思维轨迹与外部工具调用（如搜索 API），是构建自主 Agent 的基础。</p>
+                    </div>
+                    <div class="border p-5 rounded-lg">
+                        <h4 class="font-bold text-blue-800 border-b pb-2 mb-3">思维树 (Tree of Thoughts, ToT)</h4>
+                        <p class="text-sm">在思维空间进行树状搜索和回溯，适用于需要复杂规划和前瞻的任务。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section id="code" class="mb-16">
+                <h2 class="text-3xl mb-6">5. 代码生成与开发辅助 <span class="term-en">(Code Generation)</span></h2>
+                <p>LLM 在软件生命周期的各个阶段都能提供支持：</p>
+                <div class="space-y-4 mt-4">
+                    <div class="flex gap-4 items-start">
+                        <div class="bg-blue-100 p-2 rounded"><i class="fas fa-code text-blue-600"></i></div>
+                        <div>
+                            <span class="font-bold">生成与转换：</span> 明确语言版本和库（如 Python 3.10, Pandas）。支持跨语言迁移（如 Java 迁移至 Kotlin）。
+                        </div>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                        <div class="bg-green-100 p-2 rounded"><i class="fas fa-bug text-green-600"></i></div>
+                        <div>
+                            <span class="font-bold">调试与审查：</span> 提供 Traceback 错误信息，让模型诊断根因并建议符合规范的修复方案。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6 -->
+            <section id="best-practices" class="mb-16">
+                <h2 class="text-3xl mb-6">6. 提示工程最佳实践总结 <span class="term-en">(Best Practices)</span></h2>
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-8 shadow-sm">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-2 font-bold text-blue-900">
+                                <i class="fas fa-check-circle"></i> <span>推荐做法 (Do's)</span>
+                            </div>
+                            <ul class="text-sm space-y-2 list-none">
+                                <li><i class="fas fa-plus mr-2 text-green-500"></i> 提供覆盖边缘情况的示例。</li>
+                                <li><i class="fas fa-plus mr-2 text-green-500"></i> 强制使用结构化输出 (JSON/Schema)。</li>
+                                <li><i class="fas fa-plus mr-2 text-green-500"></i> 优先使用正向指令（做什么）。</li>
+                                <li><i class="fas fa-plus mr-2 text-green-500"></i> 在生产环境使用变量占位符。</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-2 font-bold text-red-900">
+                                <i class="fas fa-times-circle"></i> <span>避免做法 (Dont's)</span>
+                            </div>
+                            <ul class="text-sm space-y-2 list-none">
+                                <li><i class="fas fa-minus mr-2 text-red-500"></i> 使用过于模糊或含糊的修辞。</li>
+                                <li><i class="fas fa-minus mr-2 text-red-500"></i> 认为提示可以一劳永逸（不测试）。</li>
+                                <li><i class="fas fa-minus mr-2 text-red-500"></i> 忽略 Token 限制导致的截断。</li>
+                                <li><i class="fas fa-minus mr-2 text-red-500"></i> 过度依赖负向约束（不准做什么）。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout callout-warning mt-8">
+                    <p><strong>注意：</strong> 极端的参数设置（如极高温度或不当的 Top-P）可能导致模型陷入 <strong>重复循环错误 (Repetition Loop Bug)</strong>。建议通过微调参数打破确定性死循环。</p>
+                </div>
+            </section>
+
+            <footer class="mt-20 pt-10 border-t border-gray-200 text-center text-gray-500 text-sm">
+                <p>© 2025 Google Vertex AI Prompt Engineering Study Report. 基于上传文档翻译与排版。</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-8 right-8 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-all z-50">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // Smooth highlighting of sidebar navigation based on scroll position
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('aside nav a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 120) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('sidebar-active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('sidebar-active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
