@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoreKit 1 vs StoreKit 2 深度技术对比报告</title>
+    <style>
+        :root {
+            --primary-color: #007aff;
+            --secondary-color: #5ac8fa;
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --code-bg: #f4f4f4;
+            --border-color: #e5e5e5;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            background-color: #f9f9f9;
+        }
+
+        /* Sidebar Navigation */
+        nav {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #fff;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+        }
+
+        nav h1 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #000;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.8rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #666;
+            font-size: 0.9rem;
+            display: block;
+            padding: 0.3rem 0;
+            transition: color 0.2s;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--sidebar-width);
+            padding: 4rem 6rem;
+            max-width: 900px;
+            background: #fff;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.02);
+        }
+
+        h1, h2, h3 {
+            color: #1d1d1f;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f7;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--code-bg);
+            padding: 1.2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.9rem;
+            color: #d63384;
+        }
+
+        pre code {
+            color: #333;
+        }
+
+        /* Alerts/Notes */
+       .note {
+            background-color: #f5f5f7;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+       .warning {
+            background-color: #fff4f4;
+            border-left: 4px solid #ff3b30;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* SK1 Deep Dive Specific Styles */
+       .asn1-box {
+            background-color: #fffbf0;
+            border: 1px solid #ffeeba;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+       .asn1-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        footer {
+            margin-top: 5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: #86868b;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <h1>StoreKit 技术对比</h1>
+    <ul>
+        <li><a href="#summary">1. 执行摘要</a></li>
+        <li><a href="#architecture">2. 架构演进</a></li>
+        <li><a href="#code-paradigm">3. 编程范式对比</a></li>
+        <li><a href="#validation">4. 收据校验重构</a></li>
+        <li><a href="#sk1-receipt-deep-dive">5. 深度剖析：SK1 收据结构</a></li>
+        <li><a href="#client-server">6. 交互流程对比</a></li>
+        <li><a href="#jws-deep-dive">7. 深度剖析：SK2 JWS</a></li>
+        <li><a href="#security">8. 安全性与隐私</a></li>
+        <li><a href="#compatibility">9. 兼容性与迁移</a></li>
+        <li><a href="#conclusion">10. 结论</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>StoreKit 1 vs StoreKit 2 深度技术对比报告</h1>
+    
+    <section id="summary">
+        <h2>1. 执行摘要</h2>
+        <p>随着 iOS 生态系统的成熟，StoreKit 框架经历了从基于 Objective-C 观察者模式的 <strong>StoreKit 1 (Original API)</strong> 到基于 Swift 结构化并发的 <strong>StoreKit 2 (Modern API)</strong> 的重大范式转变。</p>
+        <p>StoreKit 1 虽久经考验，但存在集成复杂、收据格式（ASN.1）晦涩、依赖本地 OpenSSL 校验等痛点。StoreKit 2 利用 Swift 5.5+ 的 <code>async/await</code> 特性简化了交易流程，引入了基于行业标准 <strong>JWS (JSON Web Signature)</strong> 的验证机制，并提供了更加透明、安全的 <code>Transaction</code> 对象模型。</p>
+        <p>本报告将详细对比两代框架在架构、代码实现、收据验证及安全性上的差异，并重点剖析 StoreKit 1 收据体积膨胀的根本原因及 StoreKit 2 JWS 的底层实现。</p>
+    </section>
+
+    <section id="architecture">
+        <h2>2. 架构演进：从观察者模式到结构化并发</h2>
+        
+        <h3>2.1 StoreKit 1：观察者模式与全局队列</h3>
+        <p>StoreKit 1 的核心是 <code>SKPaymentQueue</code>。开发者必须实现 <code>SKPaymentTransactionObserver</code> 协议。</p>
+        <ul>
+            <li><strong>控制流断裂：</strong> 购买请求与结果回调在不同的函数中，状态管理依赖开发者手动维护。</li>
+            <li><strong>生命周期风险：</strong> 若 App 在交易回调前崩溃，交易会滞留。开发者必须在启动时尽早添加观察者以处理 <code>unfinished transactions</code>，否则会导致漏单。</li>
+        </ul>
+
+        <h3>2.2 StoreKit 2：结构化并发 (Swift Concurrency)</h3>
+        <p>StoreKit 2 采用线性控制流。<code>Product</code> 和 <code>Transaction</code> 变为结构体（Struct）。</p>
+        <ul>
+            <li><strong>线性化调用：</strong> <code>await product.purchase()</code> 直接返回购买结果，无需跨函数传递状态。</li>
+            <li><strong>被动状态同步：</strong> 使用 <code>Transaction.updates</code> 异步序列（AsyncSequence）处理应用外的交易（如续费），替代了复杂的 Delegate 回调。</li>
+        </ul>
+
+        <h3>2.3 核心架构差异对比表</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>特性维度</th>
+                    <th>StoreKit 1 (Original API)</th>
+                    <th>StoreKit 2 (Modern Swift API)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>设计模式</strong></td>
+                    <td>委托/观察者模式 (Delegate/Observer)</td>
+                    <td>结构化并发 (Async/Await)</td>
+                </tr>
+                <tr>
+                    <td><strong>核心对象</strong></td>
+                    <td>类 (<code>SKProduct</code>, <code>SKPaymentTransaction</code>)</td>
+                    <td>结构体 (<code>Product</code>, <code>Transaction</code>)</td>
+                </tr>
+                <tr>
+                    <td><strong>购买流程</strong></td>
+                    <td>添加到队列 -> 等待回调 -> 手动完成</td>
+                    <td>调用函数 -> await 返回值 -> 自动验证 -> 手动完成</td>
+                </tr>
+                <tr>
+                    <td><strong>收据/凭证</strong></td>
+                    <td>统一的 App Receipt (ASN.1 二进制文件)</td>
+                    <td>离散的 JWS 交易对象</td>
+                </tr>
+                <tr>
+                    <td><strong>恢复购买</strong></td>
+                    <td><code>restoreCompletedTransactions()</code> (需密码)</td>
+                    <td><code>Transaction.currentEntitlements</code> (静默、自动)</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="code-paradigm">
+        <h2>3. 编程范式对比：代码层面的变革</h2>
+
+        <h3>3.1 StoreKit 1 购买代码</h3>
+        <pre><code>// 逻辑分散在多个方法中
+class IAPManager: NSObject, SKPaymentTransactionObserver {
+    func buy(product: SKProduct) {
+        let payment = SKPayment(product: product)
+        SKPaymentQueue.default().add(payment)
+    }
+    
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions:) {
+        for transaction in transactions {
+            switch transaction.transactionState {
+            case.purchased:
+                complete(transaction) // 验证收据逻辑
+            case.failed:
+                fail(transaction)
+            //... 处理其他状态
+            }
+        }
+    }
+}</code></pre>
+
+        <h3>3.2 StoreKit 2 购买代码</h3>
+        <pre><code>// 逻辑线性化，更加直观
+func purchase(product: Product) async {
+    do {
+        let result = try await product.purchase()
+        switch result {
+        case.success(let verification):
+            // 系统自动验证签名
+            switch verification {
+            case.verified(let transaction):
+                await transaction.finish() // 完成交易
+                deliverContent()
+            case.unverified:
+                print("签名验证失败")
+            }
+        case.userCancelled:
+            break
+        case.pending:
+            break
+        }
+    } catch {
+        print("购买出错: \(error)")
+    }
+}</code></pre>
+    </section>
+
+    <section id="validation">
+        <h2>4. 收据校验体系的根本性重构</h2>
+        <p>收据校验是 IAP 安全的核心。这是两个框架差异最剧烈、技术跨度最大的领域。</p>
+        
+        <h3>4.1 StoreKit 1: 统一应用收据 (App Receipt)</h3>
+        <p>StoreKit 1 依赖位于 <code>Bundle.main.appStoreReceiptURL</code> 的单一二进制文件。这是一个 <strong>PKCS #7</strong> 容器，内部封装了 ASN.1 格式的数据。</p>
+        <div class="warning">
+            <strong>SK1 痛点：</strong> 本地解析 ASN.1 极其复杂，通常需要引入 OpenSSL。因此，大多数开发者不得不依赖 Apple 的 <code>verifyReceipt</code> HTTP 接口，这带来了网络延迟和单点故障风险。
+        </div>
+
+        <h3>4.2 StoreKit 2: 交易即凭证</h3>
+        <p>StoreKit 2 废弃了“统一收据文件”。每一笔交易（Transaction）都是一个独立的、自包含的 JWS 对象。系统会在底层自动进行密码学验证，开发者拿到的 <code>Transaction</code> 对象通常已经是 <code>Verified</code> 状态。</p>
+    </section>
+
+    <section id="sk1-receipt-deep-dive">
+        <h2>5. 深度剖析：StoreKit 1 收据结构与体积分析</h2>
+        <p>在 StoreKit 1 中，开发者经常发现收据文件（Receipt File）体积庞大（数 KB 到数 MB）。这并非乱码，而是由其特殊的设计架构决定的。</p>
+
+        <h3>5.1 为什么 SK1 收据文件这么大？</h3>
+        <p>主要有三大原因：</p>
+        <ol>
+            <li><strong>PKCS #7 容器与证书链 (Certificate Chain)：</strong> 收据不仅仅是数据，它是一个加密容器。为了支持离线验证，Apple 在收据文件中嵌入了<strong>完整的证书链</strong>（包括 Apple Root CA、WWDR Intermediate Certificate 等）。仅证书部分就占用了约 4KB - 6KB 的空间。</li>
+            <li><strong>ASN.1 DER 编码冗余：</strong> 收据内容采用 ASN.1 标准的 DER 编码。这种 TLV (Type-Length-Value) 结构非常严谨但冗余度高。存储一个简单的整数可能需要额外的 10 字节“包装”。</li>
+            <li><strong>历史账本机制 (Append-Only)：</strong> 
+                <ul>
+                    <li>对于<strong>自动续期订阅</strong>，每次续费都会生成一个新的 Type 17 记录并<strong>追加</strong>到收据中，旧记录不会被删除。</li>
+                    <li>这意味着一个订阅了 5 年的用户，收据里会包含 60+ 条历史记录。</li>
+                    <li>在 Sandbox 测试环境下，订阅周期极短（5分钟），测试账号极易产生包含数百条记录的 MB 级大收据。</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>5.2 收据内部包含什么？(ASN.1 字段详解)</h3>
+        <p>解析 PKCS #7 容器后，Payload 包含以下关键字段：</p>
+        <div class="asn1-box">
+            <span class="asn1-title">基础元数据</span>
+            <ul>
+                <li><strong>Type 2 (Bundle ID):</strong> 应用包名，用于防止收据注入（将 A 应用的收据给 B 应用用）。</li>
+                <li><strong>Type 3 (App Version):</strong> 购买时的应用版本。</li>
+                <li><strong>Type 19 (Original App Version):</strong> 用户首次下载应用的版本（用于老用户权益判定）。</li>
+                <li><strong>Type 12 (Creation Date):</strong> 收据生成时间。</li>
+            </ul>
+        </div>
+        
+        <div class="asn1-box">
+            <span class="asn1-title">设备指纹 (防篡改核心)</span>
+            <ul>
+                <li><strong>Type 4 (Opaque Value)</strong> & <strong>Type 5 (SHA-1 Hash):</strong> 
+                <br>本地验证的核心。<code>SHA-1(Device_GUID + Opaque + Bundle_ID)</code> 必须等于 Type 5 的值。这确保了收据是属于当前设备的，不能通过 AirDrop 发给别人用。</li>
+            </ul>
+        </div>
+
+        <div class="asn1-box">
+            <span class="asn1-title">Type 17: 应用内购买记录 (In-App Purchase Receipt)</span>
+            <p>这是一个<strong>数组</strong>，包含多条购买记录。每条记录内部又是一个 ASN.1 Set，包含：</p>
+            <ul>
+                <li><strong>Type 1701 (Quantity):</strong> 数量。</li>
+                <li><strong>Type 1702 (Product ID):</strong> 商品 ID。</li>
+                <li><strong>Type 1703 (Transaction ID):</strong> 交易唯一流水号。</li>
+                <li><strong>Type 1705 (Original Transaction ID):</strong> 订阅链的根 ID，用于关联所有续费记录。</li>
+                <li><strong>Type 1704 (Purchase Date):</strong> 购买时间。</li>
+                <li><strong>Type 1708 (Expires Date):</strong> 订阅过期时间（仅订阅有）。</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="client-server">
+        <h2>6. 客户端与服务端交互流程对比</h2>
+        
+        <h3>6.1 StoreKit 1 流程 (依赖 Apple 验证)</h3>
+        <ol>
+            <li>Client: 监听 <code>updatedTransactions</code> 收到购买成功回调。</li>
+            <li>Client: 读取本地收据 <code>Bundle.main.appStoreReceiptURL</code>。</li>
+            <li>Client: 将收据进行 Base64 编码，发送给 Server。</li>
+            <li>Server: 将收据转发给 Apple 的 <code>verifyReceipt</code> 接口 (先 Production 后 Sandbox)。</li>
+            <li>Server: 解析 Apple 返回的 JSON，处理业务逻辑。</li>
+            <li>Server: 返回成功给 Client。</li>
+            <li>Client: 调用 <code>finishTransaction</code>。</li>
+        </ol>
+
+        <h3>6.2 StoreKit 2 流程 (JWS 离线验证)</h3>
+        <ol>
+            <li>Client: <code>await product.purchase()</code> 返回 <code>VerificationResult</code>。</li>
+            <li>Client: 提取 <code>jwsRepresentation</code> 字符串，发送给 Server。</li>
+            <li>Server: <strong>本地验证签名</strong> (使用 Apple Root CA 公钥解密 JWS)，无需请求 Apple 服务器。</li>
+            <li>Server: 解析 JWS Payload，处理业务逻辑。</li>
+            <li>Server: 返回成功给 Client。</li>
+            <li>Client: 调用 <code>await transaction.finish()</code>。</li>
+        </ol>
+    </section>
+
+    <section id="jws-deep-dive">
+        <h2>7. 核心深度剖析：StoreKit 2 的 JWS</h2>
+        <p>StoreKit 2 使用符合 RFC 7515 标准的 <strong>JSON Web Signature</strong>。格式为 <code>Header.Payload.Signature</code>。</p>
+        
+        <h3>7.1 JWS Header</h3>
+        <pre><code>{
+  "alg": "ES256", // 算法：ECDSA P-256 + SHA-256
+  "x5c": ["MII...",...] // 证书链 (Base64)
+}</code></pre>
+
+        <h3>7.2 JWS Payload (业务数据)</h3>
+        <p>解码后包含清晰的 JSON 数据，无需像 SK1 那样处理 ASN.1。</p>
+        <ul>
+            <li><code>transactionId</code>: 交易 ID</li>
+            <li><code>originalTransactionId</code>: 原始交易 ID</li>
+            <li><code>bundleId</code>: 包名</li>
+            <li><code>expiresDate</code>: 过期时间戳</li>
+            <li><code>appAccountToken</code>: <strong>新特性</strong>，用于绑定开发者用户系统的 UserID (UUID格式)。</li>
+        </ul>
+
+        <h3>7.3 验证原理</h3>
+        <p>服务端只需：1. 验证 x5c 证书链根节点是 Apple Root CA G3；2. 使用证书公钥验证 Signature。无需任何网络请求即可确认交易合法性。</p>
+    </section>
+
+    <section id="security">
+        <h2>8. 安全性与隐私</h2>
+        <ul>
+            <li><strong>中间人攻击 (MITM)：</strong> SK1 的 <code>verifyReceipt</code> 易受 DNS 劫持攻击。SK2 的 JWS 是自签名的，篡改内容会导致签名失效，彻底杜绝了此类攻击。</li>
+            <li><strong>设备绑定：</strong> SK2 的 JWS 包含 <code>deviceVerification</code> 字段，防止 JWS 被复制到其他设备重放。</li>
+        </ul>
+    </section>
+
+    <section id="compatibility">
+        <h2>9. 兼容性与迁移策略</h2>
+        <div class="note">
+            <strong>系统要求：</strong> StoreKit 2 需要 <strong>iOS 15+</strong>。
+        </div>
+        <p>对于需要支持旧版本的 App，建议采用<strong>混合架构 (Hybrid Strategy)</strong>：</p>
+        <ul>
+            <li>iOS 15+ 用户：使用 StoreKit 2 API。</li>
+            <li>iOS 14- 用户：保留 StoreKit 1 代码。</li>
+        </ul>
+        <p><strong>迁移优势：</strong> StoreKit 2 会自动读取 SK1 的旧收据并转换为新的 JWS 格式，老用户升级 App 后无缝过渡。</p>
+    </section>
+
+    <section id="conclusion">
+        <h2>10. 结论</h2>
+        <p>StoreKit 2 不仅仅是一次 API 更新，而是底层信任机制的重构。它通过 JWS 解决了 StoreKit 1 收据体积大、解析难、验证慢的问题。</p>
+        <p><strong>建议：</strong></p>
+        <ul>
+            <li><strong>新项目：</strong> 全面拥抱 StoreKit 2。</li>
+            <li><strong>老项目：</strong> 在服务端引入 JWS 验证能力，客户端逐步在 iOS 15+ 设备上启用 StoreKit 2 路径，利用其 <code>unfinished</code> 序列更可靠地解决漏单问题。</li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>生成日期: 2026年1月 &bull; 资料来源: Apple Developer Documentation, WWDC Sessions, Technical Notes</p>
+    </footer>
+</main>
+
+</body>
+</html>

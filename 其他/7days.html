@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>七天语音冒险：英文字母发音大师养成指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Soft Pastels -->
+    <!-- Application Structure Plan: The application is structured as a single-page app with a persistent top navigation for seamless movement between sections. The core components are: 1) A 'Home' section serving as a dashboard for parents, featuring an introduction and a cumulative learning progress chart. 2) Seven distinct, toggleable 'Day' sections, each presenting the letters for that day as interactive cards that reveal detailed stories, actions, and word breakdowns upon clicking. This transforms the linear report into an explorable, hub-and-spoke model. 3) A 'Resources' section consolidating the reference table and word lists, with an added search filter for quick access. This structure prioritizes user-led exploration and provides both high-level overviews (chart) and deep-dive content (interactive cards), making the learning journey more engaging and manageable than a simple document scroll. -->
+    <!-- Visualization & Content Choices: 1. Cumulative Learning Chart (Home): Report Info -> Daily letter count. Goal -> Inform parents of the learning pace. Viz -> Bar Chart (Chart.js). Interaction -> Hover for details on new letters. Justification -> Provides a quick quantitative summary of the curriculum's intensity. 2. Interactive Letter Cards (Daily Sections): Report Info -> Letter details (story, action, mouth shape, words). Goal -> Organize & Inform. Viz -> HTML/CSS card layout. Interaction -> Click to expand/collapse details. Justification -> Encourages active exploration and focuses on one piece of information at a time, preventing overwhelm. 3. Filterable Reference Table (Resources): Report Info -> Full A-Z reference. Goal -> Organize. Viz -> HTML Table. Interaction -> JS-powered search/filter input. Justification -> Enhances usability by allowing parents to quickly find a specific letter sound without scrolling. 4. Word Family Lists (Resources): Report Info -> CVC word lists. Goal -> Organize. Viz -> HTML tables grouped by rime. Justification -> Supports pattern recognition by grouping phonetically similar words. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #FDFBF8; }
+        .phoneme-block {
+            display: inline-block;
+            background-color: #FEF3C7;
+            color: #92400E;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            margin: 0 2px;
+            font-size: 0.9em;
+            border: 1px solid #FBBF24;
+        }
+        .active-nav {
+            background-color: #8B5CF6;
+            color: #FFFFFF;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .letter-card-back {
+            transform: rotateY(180deg);
+        }
+        .letter-card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .letter-card.is-flipped .letter-card-inner {
+            transform: rotateY(180deg);
+        }
+        .letter-card-front, .letter-card-back {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#FDFBF8] text-gray-800 antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-purple-600">语音冒险</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div id="nav-links" class="ml-10 flex items-baseline space-x-1 lg:space-x-2">
+                        <a href="#home" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">探险准备</a>
+                        <a href="#day1" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第一天</a>
+                        <a href="#day2" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第二天</a>
+                        <a href="#day3" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第三天</a>
+                        <a href="#day4" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第四天</a>
+                        <a href="#day5" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第五天</a>
+                        <a href="#day6" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第六天</a>
+                        <a href="#day7" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">第七天</a>
+                        <a href="#resources" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-purple-100">工具箱</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        <option value="#home">探险准备</option>
+                        <option value="#day1">第一天</option>
+                        <option value="#day2">第二天</option>
+                        <option value="#day3">第三天</option>
+                        <option value="#day4">第四天</option>
+                        <option value="#day5">第五天</option>
+                        <option value="#day6">第六天</option>
+                        <option value="#day7">第七天</option>
+                        <option value="#resources">工具箱</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        <section id="home" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">欢迎，家长与学习者！</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">准备开启我们的声音探险，用七天时间，系统掌握英文字母发音的秘密。</p>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-12">
+                <h3 class="text-2xl font-bold text-purple-700 mb-4">给向导（家长）的信：“音块”的秘密</h3>
+                <div class="space-y-4 text-gray-700 leading-relaxed">
+                    <p>本课程的核心是揭示英语学习的底层逻辑：<strong>系统性自然拼读法</strong>。我们不从完整单词入手，而是先教独立的“音块”（字母发音），然后引导孩子像拼乐高一样将声音“拼合”起来。这种方法能赋予孩子独立解码未知单词的超能力，为自主阅读打下坚实基础。</p>
+                    <p>我们还将利用<strong>多感官学习法</strong>，将声音与具体动作、生动故事和视觉提示（口型图）结合，把枯燥的记忆变成有趣的游戏。您不需要任何音乐基础，只需要成为孩子有趣的玩伴！</p>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-center mb-12">
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-4">探险的黄金法则</h3>
+                    <ul class="space-y-3 list-inside">
+                        <li class="flex items-start"><span class="text-yellow-500 mr-3 mt-1">⭐</span><div><strong>只说“纯粹音”：</strong> 严格区分字母名称和发音，辅音要短促、干净。</div></li>
+                        <li class="flex items-start"><span class="text-yellow-500 mr-3 mt-1">⭐</span><div><strong>赞美努力：</strong> 肯定孩子的尝试过程，而非结果，培养成长型思维。</div></li>
+                        <li class="flex items-start"><span class="text-yellow-500 mr-3 mt-1">⭐</span><div><strong>少量多次：</strong> 保持课程紧凑有趣，每天专注40分钟效果最佳。</div></li>
+                        <li class="flex items-start"><span class="text-yellow-500 mr-3 mt-1">⭐</span><div><strong>成为玩伴：</strong> 用夸张的表情和声调，让学习充满欢声笑语。</div></li>
+                    </ul>
+                </div>
+                 <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-4 text-center">七日学习进度总览</h3>
+                    <p class="text-center text-gray-600 mb-4">这张图表展示了七天内累计学习的字母发音数量。将鼠标悬停在每日的柱状图上，可以查看当天新增的字母。</p>
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="day1" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第一天：入门之星 (S, A, T, P)</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">今天我们将迎来“快速胜利”！这四个高频字母的组合能迅速拼读出许多单词，让孩子立刻体验到阅读的成就感。点击下方的字母卡片，开始学习吧！</p>
+            </div>
+            <div id="day1-letters" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="day2" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第二天：鼻音与敲击音 (I, N, M, D)</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">今天加入一个新元音和三个辅音，特别是M和N这两个容易连接的“哼鸣音”。我们将复习旧知识并混合练习新声音。</p>
+            </div>
+            <div id="day2-letters" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="day3" class="content-section">
+            <div class="text-center mb-12">
+                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第三天：喉咙后部的声音 (G, O, C, K)</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">今天的核心是“声音双胞胎”：C和K都发 /k/ 音！这是孩子首次接触拼写复杂性，我们将用游戏让它变有趣。</p>
+            </div>
+            <div id="day3-letters" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="day4" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第四天：气流音和弹跳音 (E, H, R, B)</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">我们已经完成一半了！今天的发音非常依赖身体感知，我们会通过大型复习游戏巩固所有学过的声音。</p>
+            </div>
+            <div id="day4-letters" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="day5" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第五天：长音和活力音 (F, L, U, J)</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">这是一个里程碑！今天我们将学习最后一个短元音U。掌握全部五个短元音后，孩子能解码的单词量将爆炸式增长！</p>
+            </div>
+            <div id="day5-letters" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="day6" class="content-section">
+             <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第六天：不寻常的嫌疑人 (V, W, Y, X, Z)</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">今天挑战一些更棘手、频率较低的字母。我们会辨析 /f/ 和 /v/，并认识一个字母发两个音的特殊成员X。</p>
+            </div>
+            <div id="day6-letters" class="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6"></div>
+        </section>
+
+        <section id="day7" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">第七天：压轴大戏 (Qu) 与字母庆典</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">最后一个字母团队Qu登场！它总是和好朋友U一起出现。之后，我们将举行盛大的字母庆典，庆祝一周的学习成果！</p>
+            </div>
+            <div id="day7-letters" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"></div>
+        </section>
+        
+        <section id="resources" class="content-section">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">语音之旅工具箱</h2>
+                <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">这里是您可以长期使用的资源，包括完整的发音参考表和拼读清单，帮助您和孩子随时复习巩固。</p>
+            </div>
+            
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-12">
+                 <h3 class="text-2xl font-bold text-purple-700 mb-4">完整字母-发音参考表</h3>
+                 <input type="text" id="table-filter" class="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500" placeholder="输入字母快速查找...">
+                 <div class="overflow-x-auto">
+                    <table id="reference-table" class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">字母</th>
+                                <th scope="col" class="px-6 py-3">关键词</th>
+                                <th scope="col" class="px-6 py-3">主要发音</th>
+                                <th scope="col" class="px-6 py-3">口型与动作提示</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                 </div>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg mb-12">
+                 <h3 class="text-2xl font-bold text-purple-700 mb-4">“我的第一组50词”拼读清单</h3>
+                 <div id="word-family-lists" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8"></div>
+            </div>
+
+             <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                <h3 class="text-2xl font-bold text-purple-700 mb-4">下一步是什么？</h3>
+                <p class="text-gray-700 leading-relaxed">恭喜！你们完成了一个重要的里程碑。但这只是开始。当孩子遇到ship, see, like这些词时，他们会发现规则不适用了。这是因为英语密码还有更深的层次等待解锁，包括：<strong>字母组合 (Digraphs)</strong>, <strong>元音团队 (Vowel Teams)</strong>, <strong>神奇的“e” (Magic e)</strong>, 和<strong>高频/不规则词</strong>。继续带领孩子探索这些新密码，在阅读的冒险旅程中不断前进吧！</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>七天语音冒险互动学习中心 &copy; 2025</p>
+        </div>
+    </footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const letterData = {
+                day1: [
+                    { name: 'S s', sound: '/s/', keyword: 'Snake 🐍', story: '一条嘶嘶作响的小蛇(snake)在滑行。', action: '伸出手臂像蛇一样弯曲摆动。', mouth: '上下牙齿轻合，气流从齿缝送出。', words: [{w:'at', p:['a','t']}, {w:'tap', p:['t','a','p']}, {w:'pat', p:['p','a','t']}, {w:'sat', p:['s','a','t']}, {w:'sap', p:['s','a','p']}] },
+                    { name: 'A a', sound: '/æ/', keyword: 'Ant 🐜', story: '一只蚂蚁(ant)爬上你的胳膊。', action: '张大嘴巴像要咬大苹果(apple)。', mouth: '嘴巴张大，嘴角向两边咧开。', words: [] },
+                    { name: 'T t', sound: '/t/', keyword: 'Tennis 🎾', story: '看网球(tennis)比赛，头来回转。', action: '食指像钟摆一样左右摆动。', mouth: '舌尖顶上齿龈，突然送气冲开。', words: [] },
+                    { name: 'P p', sound: '/p/', keyword: 'Pink 💖', story: '吹灭一支粉色的(pink)蜡烛。', action: '伸出食指当蜡烛，用嘴唇吹气。', mouth: '双唇紧闭，突然送气冲开。', words: [] },
+                ],
+                day2: [
+                    { name: 'I i', sound: '/i/', keyword: 'Insect 🐜', story: '黏糊糊的(icky)小虫掉进墨水(ink)。', action: '蜷起手指模仿小虫子爬。', mouth: '嘴巴微张呈扁平状，像在微笑。', words: [{w:'it',p:['i','t']}, {w:'in',p:['i','n']}, {w:'sit',p:['s','i','t']}, {w:'pin',p:['p','i','n']}, {w:'Tim',p:['t','i','m']}] },
+                    { name: 'N n', sound: '/n/', keyword: 'Noise ✈️', story: '飞机(plane)在天上发出噪音(noise)。', action: '张开双臂像机翼，发持续鼻音。', mouth: '舌尖顶上齿龈，气流从鼻腔通过。', words: [{w:'pan',p:['p','a','n']}, {w:'man',p:['m','a','n']}, {w:'and',p:['a','n','d']}] },
+                    { name: 'M m', sound: '/m/', keyword: 'Mmm 😋', story: '吃美味(yummy)食物，摸着肚子说mmmmm。', action: '轻轻揉肚子，发持续鼻音。', mouth: '双唇紧闭，气流从鼻腔通过。', words: [] },
+                    { name: 'D d', sound: '/d/', keyword: 'Dad 👨', story: '爸爸(dad)在敲鼓(drum)。', action: '双手握拳模仿敲鼓。', mouth: '舌尖顶上齿龈，用气流爆破而出。', words: [{w:'dad',p:['d','a','d']}, {w:'sad',p:['s','a','d']}] },
+                ],
+                day3: [
+                    { name: 'G g', sound: '/g/', keyword: 'Gurgle 💧', story: '水从下水道咕噜咕噜(gurgle)流走。', action: '手指向下画圈模仿水流。', mouth: '舌根抬起抵住软腭，感受喉咙后部爆破。', words: [{w:'dog',p:['d','o','g']}, {w:'dig',p:['d','i','g']}] },
+                    { name: 'O o', sound: '/ɒ/', keyword: 'Octopus 🐙', story: '看到章鱼(octopus)惊讶地发出这个音。', action: '手做成O形，表情惊讶。', mouth: '嘴巴张成圆形。', words: [{w:'got',p:['g','o','t']}, {w:'pot',p:['p','o','t']}, {w:'dot',p:['d','o','t']}] },
+                    { name: 'C c', sound: '/k/', keyword: 'Cat 🐱', story: '“声音双胞胎”之一，卷卷的C。', action: '模仿放风筝(kite)，发出清脆的/k/音。', mouth: '舌根抬起抵住软腭，突然送气冲开。', words: [{w:'cat',p:['k','a','t']}, {w:'can',p:['k','a','n']}, {w:'cot',p:['k','o','t']}, {w:'cod',p:['k','o','d']}, {w:'cap',p:['k','a','p']}] },
+                    { name: 'K k', sound: '/k/', keyword: 'Kite 🪁', story: '“声音双胞胎”之二，踢腿的K。', action: '模仿放风筝(kite)，发出清脆的/k/音。', mouth: '舌根抬起抵住软腭，突然送气冲开。', words: [{w:'kid',p:['k','i','d']}, {w:'kit',p:['k','i','t']}] },
+                ],
+                day4: [
+                    { name: 'E e', sound: '/e/', keyword: 'Egg 🥚', story: '敲开一个鸡蛋(egg)。', action: '模仿用手把鸡蛋在碗边敲开。', mouth: '嘴唇放松，下巴微降。', words: [{w:'bed',p:['b','e','d']}, {w:'hen',p:['h','e','n']}, {w:'red',p:['r','e','d']}, {w:'ten',p:['t','e','n']}, {w:'get',p:['g','e','t']}] },
+                    { name: 'H h', sound: '/h/', keyword: 'Hot 🔥', story: '跑完步呼出热气(hot)。', action: '手掌放嘴前向外哈气。', mouth: '嘴巴自然张开，只有气流。', words: [{w:'hot',p:['h','o','t']}] },
+                    { name: 'R r', sound: '/r/', keyword: 'Roar 🦁', story: '小狗或海盗在咆哮。', action: '手指蜷缩成爪子状咆哮。', mouth: '嘴唇前突收圆，舌头后卷不接触。', words: [{w:'rat',p:['r','a','t']}] },
+                    { name: 'B b', sound: '/b/', keyword: 'Ball ⚽', story: '一个球(ball)在地上弹(bounce)。', action: '握拳模仿球弹跳。', mouth: '双唇紧闭，有力地爆破而出。', words: [{w:'bat',p:['b','a','t']}, {w:'big',p:['b','i','g']}, {w:'Bob',p:['b','o','b']}] },
+                ],
+                day5: [
+                    { name: 'F f', sound: '/f/', keyword: 'Fish 🐟', story: '充气鱼(fish)漏气了。', action: '双手合十模仿漏气的鱼。', mouth: '上齿轻触下唇，送气。', words: [{w:'fan',p:['f','a','n']}] },
+                    { name: 'L l', sound: '/l/', keyword: 'Lollipop 🍭', story: '舔一个大大的棒棒糖(lollipop)。', action: '模仿舔棒棒糖。', mouth: '舌尖顶住上齿龈。', words: [{w:'leg',p:['l','e','g']}, {w:'lip',p:['l','i','p']}] },
+                    { name: 'U u', sound: '/ʌ/', keyword: 'Umbrella ☂️', story: '下雨了，撑开雨伞(umbrella)。', action: '拳头向上推模仿撑伞。', mouth: '下巴放松，嘴巴微张。', words: [{w:'fun',p:['f','u','n']}, {w:'sun',p:['s','u','n']}, {w:'cup',p:['k','u','p']}, {w:'bug',p:['b','u','g']}, {w:'run',p:['r','u','n']}] },
+                    { name: 'J j', sound: '/dʒ/', keyword: 'Jelly 🍮', story: '果冻(jelly)在盘子里晃来晃去。', action: '身体和手像果冻一样扭动。', mouth: '嘴唇前突，带“滋滋”感。', words: [{w:'jet',p:['j','e','t']}, {w:'jam',p:['j','a','m']}] },
+                ],
+                day6: [
+                    { name: 'V v', sound: '/v/', keyword: 'Van 🚐', story: '开面包车(van)，方向盘在震动。', action: '双手握住想象中的方向盘。', mouth: '上齿轻触下唇，声带振动。', words: [{w:'van',p:['v','a','n']}, {w:'vet',p:['v','e','t']}] },
+                    { name: 'W w', sound: '/w/', keyword: 'Wind 💨', story: '风(wind)在“呼呼”地吹。', action: '嘴巴吹气。', mouth: '嘴唇收成小圆形，向外送气。', words: [{w:'wet',p:['w','e','t']}, {w:'web',p:['w','e','b']}] },
+                    { name: 'Y y', sound: '/j/', keyword: 'Yak 🐃', story: '黄色的(yellow)牦牛(yak)打哈欠。', action: '模仿打哈欠。', mouth: '嘴巴先微笑再张开。', words: [{w:'yes',p:['y','e','s']}, {w:'yum',p:['y','u','m']}] },
+                    { name: 'X x', sound: '/ks/', keyword: 'Box 📦', story: 'X光(X-ray)能看到盒子(box)里的骨头。', action: '双臂在胸前交叉成X形。', mouth: '先发/k/再发/s/。', words: [{w:'box',p:['b','o','k','s']}, {w:'fox',p:['f','o','k','s']}, {w:'six',p:['s','i','k','s']}] },
+                    { name: 'Z z', sound: '/z/', keyword: 'Zip 🤐', story: '蜜蜂嗡嗡叫(buzz)，飞过拉链(zip)。', action: '双手像翅膀一样扇动。', mouth: '牙齿轻合，声带振动。', words: [{w:'zip',p:['z','i','p']}] },
+                ],
+                day7: [
+                     { name: 'Qu qu', sound: '/kw/', keyword: 'Queen 👑', story: '安静的(quiet)女王(queen)提问(question)。', action: '拇指和食指做成Q形。', mouth: '先发/k/再发/w/。', words: [{w:'quit',p:['k','w','i','t']}, {w:'quiz',p:['k','w','i','z']}, {w:'quack',p:['k','w','a','k']}] },
+                ]
+            };
+            
+            const referenceData = [
+                { letter: 'Aa', keyword: 'Apple 🍎', sound: '$/æ/$', tip: '张大嘴巴，好像要咬一口大苹果。' },
+                { letter: 'Bb', keyword: 'Ball ⚽', sound: '$/b/$', tip: '双唇紧闭有力地爆破而出，握拳模仿球弹跳。' },
+                { letter: 'Cc', keyword: 'Cat 🐱', sound: '$/k/$', tip: '舌根抬起抵住软腭爆破，模仿放风筝。' },
+                { letter: 'Dd', keyword: 'Drum 🥁', sound: '$/d/$', tip: '舌尖顶住上齿龈爆破，模仿敲鼓。' },
+                { letter: 'Ee', keyword: 'Egg 🥚', sound: '$/e/$', tip: '嘴唇放松下巴微降，模仿敲开鸡蛋。' },
+                { letter: 'Ff', keyword: 'Fish 🐟', sound: '$/f/$', tip: '上齿轻触下唇送气，模仿漏气的鱼。' },
+                { letter: 'Gg', keyword: 'Gurgle 💧', sound: '$/g/$', tip: '舌根抬起抵住软腭爆破，模仿水流声。' },
+                { letter: 'Hh', keyword: 'Hot 🔥', sound: '$/h/$', tip: '嘴巴自然张开哈气，手放嘴前感受气流。' },
+                { letter: 'Ii', keyword: 'Insect 🐜', sound: '$/i/$', tip: '嘴巴扁平微笑状，蜷起手指模仿虫子爬。' },
+                { letter: 'Jj', keyword: 'Jelly 🍮', sound: '$/dʒ/$', tip: '嘴唇前突，身体像果冻一样扭动。' },
+                { letter: 'Kk', keyword: 'Kite 🪁', sound: '$/k/$', tip: '舌根抬起抵住软腭爆破，模仿放风筝。' },
+                { letter: 'Ll', keyword: 'Lollipop 🍭', sound: '$/l/$', tip: '舌尖顶住上齿龈，模仿舔棒棒糖。' },
+                { letter: 'Mm', keyword: 'Mmm 😋', sound: '$/m/$', tip: '双唇紧闭发鼻音，轻轻揉肚子。' },
+                { letter: 'Nn', keyword: 'Noise ✈️', sound: '$/n/$', tip: '舌尖顶住上齿龈发鼻音，张开双臂模仿飞机。' },
+                { letter: 'Oo', keyword: 'Octopus 🐙', sound: '$/ɒ/$', tip: '嘴巴张成圆形，手也做成O形。' },
+                { letter: 'Pp', keyword: 'Pink 💖', sound: '$/p/$', tip: '双唇紧闭爆破，伸出食指当蜡烛吹灭。' },
+                { letter: 'Qu qu', keyword: 'Queen 👑', sound: '$/kw/$', tip: '嘴唇先做k再做w，拇指食指做成Q形。' },
+                { letter: 'Rr', keyword: 'Roar 🦁', sound: '$/r/$', tip: '嘴唇收圆舌头后卷，手指成爪子状咆哮。' },
+                { letter: 'Ss', keyword: 'Snake 🐍', sound: '$/s/$', tip: '牙齿合拢送气，手臂像蛇一样摆动。' },
+                { letter: 'Tt', keyword: 'Tennis 🎾', sound: '$/t/$', tip: '舌尖顶住上齿龈爆破，食指左右摆动。' },
+                { letter: 'Uu', keyword: 'Umbrella ☂️', sound: '$/ʌ/$', tip: '下巴放松嘴巴微张，拳头向上推模仿撑伞。' },
+                { letter: 'Vv', keyword: 'Van 🚐', sound: '$/v/$', tip: '上齿轻触下唇送气（带声音），模仿开车。' },
+                { letter: 'Ww', keyword: 'Wind 💨', sound: '$/w/$', tip: '嘴唇收圆送气，模仿吹风。' },
+                { letter: 'Xx', keyword: 'Box 📦', sound: '$/ks/$', tip: '先发k再发s，双臂在胸前交叉。' },
+                { letter: 'Yy', keyword: 'Yak 🐃', sound: '$/j/$', tip: '嘴巴先微笑再张开，模仿打哈欠。' },
+                { letter: 'Zz', keyword: 'Zip 🤐', sound: '$/z/$', tip: '牙齿合拢送气（带声音），双手模仿蜜蜂扇翅膀。' }
+            ];
+
+            const wordFamilies = {
+                '-at': ['cat', 'bat', 'sat', 'hat', 'mat', 'pat', 'fat', 'rat'],
+                '-in': ['pin', 'tin', 'fin', 'bin', 'sin', 'win'],
+                '-og': ['dog', 'log', 'fog', 'jog', 'hog'],
+                '-un': ['sun', 'fun', 'run', 'bun', 'nun', 'gun'],
+                '-et': ['jet', 'pet', 'vet', 'get', 'net', 'let', 'met']
+            };
+
+            const app = {
+                init() {
+                    this.renderAllLetters();
+                    this.renderReferenceTable(referenceData);
+                    this.renderWordFamilies();
+                    this.initNavigation();
+                    this.initChart();
+                    this.handleInitialSection();
+                    document.getElementById('table-filter').addEventListener('input', (e) => this.filterTable(e.target.value));
+                },
+
+                renderAllLetters() {
+                    for (const day in letterData) {
+                        const container = document.getElementById(`${day}-letters`);
+                        if(container) {
+                            let content = '';
+                            letterData[day].forEach(letter => {
+                                let wordListHTML = '';
+                                if(letter.words && letter.words.length > 0) {
+                                    wordListHTML = `<h4 class="font-semibold mt-4 mb-2 text-gray-800">单词拼读练习:</h4><div class="space-y-2 text-left">` +
+                                        letter.words.map(word => 
+                                            `<div class="text-lg"><strong>${word.w}</strong>: ${word.p.map(p => `<span class="phoneme-block">/${p}/</span>`).join(' ')}</div>`
+                                        ).join('') + `</div>`;
+                                }
+                                
+                                content += `
+                                <div class="perspective-1000">
+                                    <div class="letter-card relative w-full h-48 md:h-56 cursor-pointer" onclick="this.classList.toggle('is-flipped')">
+                                        <div class="letter-card-inner relative w-full h-full">
+                                            <div class="letter-card-front absolute w-full h-full bg-white rounded-xl shadow-lg flex flex-col items-center justify-center p-4 text-center border-2 border-purple-200">
+                                                <div class="text-5xl md:text-6xl font-bold text-purple-600">${letter.name}</div>
+                                                <div class="text-2xl text-gray-500 mt-2">${letter.sound}</div>
+                                                <div class="mt-3 text-xl">${letter.keyword}</div>
+                                                <div class="absolute bottom-2 text-xs text-gray-400">点击翻转查看详情</div>
+                                            </div>
+                                            <div class="letter-card-back absolute w-full h-full bg-purple-50 rounded-xl shadow-lg p-4 overflow-y-auto text-sm">
+                                                <p><strong>故事:</strong> ${letter.story}</p>
+                                                <p class="mt-2"><strong>动作:</strong> ${letter.action}</p>
+                                                <p class="mt-2"><strong>口型:</strong> ${letter.mouth}</p>
+                                                ${wordListHTML}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                `;
+                            });
+                            container.innerHTML = content;
+                        }
+                    }
+                },
+
+                renderReferenceTable(data) {
+                    const tableBody = document.querySelector('#reference-table tbody');
+                    tableBody.innerHTML = data.map(row => `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-bold text-gray-900">${row.letter}</td>
+                            <td class="px-6 py-4">${row.keyword}</td>
+                            <td class="px-6 py-4 font-mono text-purple-700">${row.sound}</td>
+                            <td class="px-6 py-4">${row.tip}</td>
+                        </tr>
+                    `).join('');
+                },
+                
+                filterTable(filterText) {
+                    const lowerFilterText = filterText.toLowerCase();
+                    const filteredData = referenceData.filter(row => row.letter.toLowerCase().includes(lowerFilterText));
+                    this.renderReferenceTable(filteredData);
+                },
+
+                renderWordFamilies() {
+                    const container = document.getElementById('word-family-lists');
+                    container.innerHTML = Object.entries(wordFamilies).map(([family, words]) => `
+                        <div class="bg-amber-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-amber-800 text-lg mb-2">${family} 家族</h4>
+                            <ul class="space-y-1 text-gray-700">
+                                ${words.map(word => `<li>${word}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('');
+                },
+
+                initNavigation() {
+                    const navContainer = document.getElementById('nav-links');
+                    const mobileNav = document.getElementById('mobile-nav');
+
+                    const handleNavClick = (hash) => {
+                        window.location.hash = hash;
+                        this.updateContent(hash);
+                    };
+
+                    navContainer.addEventListener('click', (e) => {
+                        if (e.target.tagName === 'A') {
+                            e.preventDefault();
+                            handleNavClick(e.target.getAttribute('href'));
+                        }
+                    });
+
+                    mobileNav.addEventListener('change', (e) => {
+                        handleNavClick(e.target.value);
+                    });
+                },
+                
+                handleInitialSection() {
+                    const hash = window.location.hash || '#home';
+                    this.updateContent(hash);
+                },
+
+                updateContent(hash) {
+                    const sections = document.querySelectorAll('.content-section');
+                    sections.forEach(s => s.classList.remove('active'));
+                    
+                    const activeSection = document.querySelector(hash);
+                    if (activeSection) {
+                        activeSection.classList.add('active');
+                    } else {
+                        document.querySelector('#home').classList.add('active');
+                        hash = '#home';
+                    }
+
+                    const navLinks = document.querySelectorAll('.nav-link');
+                    navLinks.forEach(link => {
+                        if (link.getAttribute('href') === hash) {
+                            link.classList.add('active-nav');
+                        } else {
+                            link.classList.remove('active-nav');
+                        }
+                    });
+                    
+                    document.getElementById('mobile-nav').value = hash;
+
+                    window.scrollTo(0, 0);
+                },
+
+                initChart() {
+                    const ctx = document.getElementById('progressChart').getContext('2d');
+                    const dailyLetters = Object.values(letterData).map(day => day.map(l => l.name.split(' ')[0]));
+                    let cumulativeCount = 0;
+                    const cumulativeData = Object.values(letterData).map(day => {
+                        cumulativeCount += day.length;
+                        return cumulativeCount;
+                    });
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['第一天', '第二天', '第三天', '第四天', '第五天', '第六天', '第七天'],
+                            datasets: [{
+                                label: '累计掌握发音数',
+                                data: cumulativeData,
+                                backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                                borderColor: 'rgba(139, 92, 246, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 30,
+                                    title: {
+                                        display: true,
+                                        text: '数量'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false,
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        footer: function(tooltipItems) {
+                                            const index = tooltipItems[0].dataIndex;
+                                            return '新学: ' + dailyLetters[index].join(', ');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            };
+
+            app.init();
+            window.addEventListener('hashchange', () => app.handleInitialSection());
+        });
+    </script>
+
+</body>
+</html>
+

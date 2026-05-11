@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>雪球关注用户最近发言速览 | 2026-05-10</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #6b7280;
+      --line: #d8d1c4;
+      --paper: #f4efe6;
+      --panel: #fffdf8;
+      --coal: #252525;
+      --red: #b1272f;
+      --green: #187c55;
+      --blue: #22577a;
+      --gold: #b7791f;
+      --shadow: 0 22px 70px rgba(33, 29, 23, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23, 23, 23, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(23, 23, 23, 0.03) 1px, transparent 1px),
+        var(--paper);
+      background-size: 34px 34px;
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+      line-height: 1.64;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 30px 0 54px;
+    }
+
+    .sheet {
+      overflow: hidden;
+      background: rgba(255, 253, 248, 0.96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 28px;
+      padding: 34px 38px 30px;
+      border-bottom: 3px double var(--coal);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--red);
+      font: 800 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(34px, 5.6vw, 68px);
+      line-height: 1.04;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .dek {
+      max-width: 780px;
+      margin: 16px 0 0;
+      color: #30343b;
+      font-size: 18px;
+    }
+
+    .stamp {
+      align-self: start;
+      padding: 18px 18px 20px;
+      background: #f8f1e2;
+      border-left: 7px solid var(--gold);
+    }
+
+    .stamp b {
+      display: block;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .stamp span {
+      display: block;
+      margin-top: 8px;
+      color: #525760;
+      font-size: 13px;
+    }
+
+    .ticker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding: 15px 38px;
+      border-bottom: 1px solid var(--line);
+      background: #fbf8f0;
+      font: 700 13px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .ticker span {
+      padding-right: 14px;
+      border-right: 1px solid var(--line);
+      color: #343941;
+    }
+
+    .ticker span:last-child { border-right: 0; }
+
+    section {
+      padding: 30px 38px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child { border-bottom: 0; }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .section-head code {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .lead-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+    }
+
+    .brief {
+      padding: 24px;
+      color: #fffdf8;
+      background: var(--coal);
+    }
+
+    .brief h2 {
+      margin-bottom: 12px;
+      font-size: 31px;
+    }
+
+    .brief p {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .signal-list li {
+      padding: 14px 16px;
+      background: #f9f6ef;
+      border: 1px solid var(--line);
+    }
+
+    .signal-list b {
+      color: var(--red);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      min-height: 320px;
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+      color: #59606b;
+      font: 700 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .pill {
+      padding: 4px 7px;
+      background: #f1eee6;
+      border: 1px solid #ded7ca;
+      border-radius: 999px;
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .card ul,
+    .matrix ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .card li,
+    .matrix li {
+      margin: 8px 0;
+    }
+
+    .quote {
+      margin-top: 14px;
+      padding: 11px 12px;
+      color: #30343b;
+      background: #f7faf8;
+      border-left: 4px solid var(--green);
+      font-size: 14px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .matrix article {
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .matrix h3 {
+      margin: 0 0 10px;
+      font-size: 19px;
+    }
+
+    .table {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: #fff;
+      background: #2e3137;
+      font: 800 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .note {
+      color: #555d69;
+      font-size: 14px;
+    }
+
+    .sources {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: 15px;
+    }
+
+    footer {
+      padding: 20px 38px 26px;
+      color: #686f7a;
+      background: #fbf8f0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      header,
+      .lead-grid,
+      .matrix,
+      .sources {
+        grid-template-columns: 1fr;
+      }
+
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100vw - 18px, 1180px); padding-top: 12px; }
+      header,
+      section,
+      .ticker,
+      footer {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <article class="sheet">
+      <header>
+        <div>
+          <p class="eyebrow">Xueqiu Daily Brief / 2026-05-10</p>
+          <h1>雪球关注用户最近一天发言速览</h1>
+          <p class="dek">基于 Chrome 登录态抓取 4 位雪球用户主页时间线，过滤置顶与明显过期内容后，提炼最近发言中的投资叙事、情绪和可跟踪线索。</p>
+        </div>
+        <aside class="stamp">
+          <b>抓取时间</b>
+          <span>2026-05-10 晚间，北京时间</span>
+          <span>范围以雪球页面相对时间为准；梁宏最近可见发言已超出严格 24 小时，单独标记。</span>
+        </aside>
+      </header>
+
+      <div class="ticker">
+        <span>AI / 半导体</span>
+        <span>主观多头创新高</span>
+        <span>泡泡玛特全球化</span>
+        <span>量化与价值投资</span>
+        <span>知行合一</span>
+      </div>
+
+      <section>
+        <div class="lead-grid">
+          <div class="brief">
+            <h2>核心判断</h2>
+            <p>最近一天的主线不是“防守”，而是围绕 AI 资本开支、半导体景气、泡泡玛特全球化 IP 以及优秀企业长期复利的风险偏好回升。最强烈的方向性表达来自但斌与钟本聪，最有方法论色彩的是大道。</p>
+          </div>
+          <ul class="signal-list">
+            <li><b>市场情绪：</b>偏进攻，AI 与半导体仍是叙事中心，美股与中国资产均被放进同一个风险偏好框架里。</li>
+            <li><b>公司线索：</b>泡泡玛特被反复讨论，重点从“潮玩热度”上移到全球 IP、艺术家网络、渠道分发和估值市场差异。</li>
+            <li><b>方法论：</b>价值投资与量化、技术分析之间出现争论，但钟本聪倾向把研究量化视为正常投资功课。</li>
+            <li><b>空白信号：</b>梁宏最近 24 小时内未见实质投资观点更新，不能硬解读为立场变化。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>用户观点卡片</h2>
+          <code>latest timeline synthesis</code>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/1102105103">但斌</a></h3>
+            <div class="meta"><span class="pill">高频转发</span><span class="pill">AI 进攻</span></div>
+            <p>今日内容集中转发 AI、半导体、美股盈利、中国资产和主观多头创新高相关材料，自己直接表达不多，但选题构成很清晰：AI 需求扩张仍是核心贝塔。</p>
+            <ul>
+              <li>关注半导体市值扩张、AI 带动硬件链扩散、Anthropic 与 Agent 资本图谱。</li>
+              <li>转发“百亿私募主观多头创新高”，强化业绩与市场环境改善的叙事。</li>
+              <li>昨天晚间仍在转发美股创新高、AI Agent、二甲双胍研究等跨领域内容。</li>
+            </ul>
+            <div class="quote">短证据：AI 需求、半导体、主观多头创新高、美股盈利超预期。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/8586152406">钟本聪 Dylan</a></h3>
+            <div class="meta"><span class="pill">泡泡玛特</span><span class="pill">量化争论</span></div>
+            <p>观点最密集，主线是泡泡玛特的全球化 IP 定价，以及对段永平取关、量化研究争论的回应。他强调研究西蒙斯与量化是正常功课，不等于放弃价值投资。</p>
+            <ul>
+              <li>认为泡泡玛特若赴美股，估值可能显著高于港股，海外用户尤其孩子群体对 Labubu 更狂热。</li>
+              <li>把泡泡玛特理解为艺术与商业结合、全球艺术家协作和全球渠道分发的公司。</li>
+              <li>看好但斌 AI 投资的进攻性，认为 AI 爆发时代冲击力很强。</li>
+            </ul>
+            <div class="quote">短证据：泡泡玛特“不是公司问题，是港股问题”；研究量化是了解对手。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/9887656769">梁宏</a></h3>
+            <div class="meta"><span class="pill">低更新</span><span class="pill">仅作参考</span></div>
+            <p>抓取窗口内未见严格 24 小时内的实质投资观点。最近可见发言是昨天早间在海南工作，调侃“股票、掼蛋双火”，更多投资内容来自更早的存储、周期和能源相关长帖。</p>
+            <ul>
+              <li>不能把“股市不错”扩展成具体持仓或行业观点。</li>
+              <li>旧观点仍围绕 NAND、存储周期、周期品和中国优势产业，但本页不把旧帖当作今日观点。</li>
+              <li>后续需要继续观察是否有新的市场复盘或调仓表述。</li>
+            </ul>
+            <div class="quote">短证据：最近可见发言为“海南工作”“股市不错”等轻量表达。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/1247347556">大道无形我有型</a></h3>
+            <div class="meta"><span class="pill">方法论</span><span class="pill">企业判断</span></div>
+            <p>最近发言以回复为主，围绕“知行合一”展开：他把行为看作认知的外显，强调真正知道就会自然行动。另有对 OPPO 文案争议的克制评论，认为错了就改。</p>
+            <ul>
+              <li>“知行合一”的代价被解释为成为本该成为的人，而非抽象口号。</li>
+              <li>对情绪、焦虑与行动关系的回应很直接：卡住往往是因为还没有真正知道。</li>
+              <li>稍早内容继续涉及泡泡玛特、神华、茅台和机会成本，但已超出严格 24 小时。</li>
+            </ul>
+            <div class="quote">短证据：你在行的就是你知的；每个人其实都在知行合一。</div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>交叉主题</h2>
+          <code>where views overlap</code>
+        </div>
+        <div class="matrix">
+          <article>
+            <h3>AI 仍是主叙事</h3>
+            <ul>
+              <li>但斌高频转发 AI、半导体、Agent、Anthropic、美股盈利。</li>
+              <li>钟本聪把但斌的 AI 投资称为“进攻性”策略。</li>
+              <li>这说明关注者圈层里，AI 已从概念交易进入“资本开支和盈利兑现”讨论。</li>
+            </ul>
+          </article>
+          <article>
+            <h3>泡泡玛特从产品到平台</h3>
+            <ul>
+              <li>钟本聪强调全球艺术家、全球分发、海外用户需求。</li>
+              <li>大道稍早围绕企业家、机会成本、持股信心展开回复。</li>
+              <li>讨论焦点已从单个爆款转向 IP 机制和资本市场定价差。</li>
+            </ul>
+          </article>
+          <article>
+            <h3>方法论分歧升温</h3>
+            <ul>
+              <li>量化、技术分析、价值投资之间的边界被反复讨论。</li>
+              <li>钟本聪的立场更开放：研究量化不代表改变信仰。</li>
+              <li>大道的回复则更像认知校验：行为最终暴露真实理解。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>跟踪清单</h2>
+          <code>next signals to watch</code>
+        </div>
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th>线索</th>
+                <th>为什么重要</th>
+                <th>下一步观察</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>AI 半导体扩散</td>
+                <td>但斌的转发组合显示，叙事已经从英伟达扩散到硬件链、存储、私募净值和美股盈利。</td>
+                <td>继续看半导体、存储和 AI 资本开支是否出现基本面验证，而非只靠新闻标题。</td>
+              </tr>
+              <tr>
+                <td>泡泡玛特估值迁移</td>
+                <td>钟本聪认为港股压低估值，美股可能给全球 IP 更高定价，这是典型“市场地理套利”叙事。</td>
+                <td>关注海外收入占比、二级市场资金偏好、Labubu 热度是否能变成可持续复购。</td>
+              </tr>
+              <tr>
+                <td>量化与价值投资争论</td>
+                <td>争论本身可能影响投资圈层对“研究方法合法性”的态度。</td>
+                <td>看后续是否从情绪争论转向策略容量、因子失效、基本面因子融合等更实质问题。</td>
+              </tr>
+              <tr>
+                <td>梁宏更新缺口</td>
+                <td>这位用户近期实质观点没有落在最近 24 小时内，不能用旧帖替代今日信号。</td>
+                <td>下一次如果有新发言，再单独对照其旧的存储和周期框架。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>来源与边界</h2>
+          <code>method note</code>
+        </div>
+        <ul class="sources">
+          <li><a href="https://xueqiu.com/u/1102105103">但斌 - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/8586152406">钟本聪 Dylan - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/9887656769">梁宏 - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/1247347556">大道无形我有型 - 雪球主页</a></li>
+        </ul>
+        <p class="note">说明：本页为信息整理，不构成投资建议。雪球页面存在懒加载、折叠正文、相对时间显示和登录态差异；摘要以本次抓取可见内容为依据，避免复刻长篇原文。</p>
+      </section>
+
+      <footer>
+        生成日期：2026-05-10。单页 HTML 报告，适合直接发布到静态站点或 GitHub Pages。
+      </footer>
+    </article>
+  </main>
+</body>
+</html>

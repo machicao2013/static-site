@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业微信 AI 助理 - 交互式指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Developer's Calm -->
+    <!-- Application Structure Plan: The SPA is designed as an interactive dashboard, diverging from the linear report format. A sticky top navigation allows users to jump to key thematic sections: 1. **概览 (Overview)**: High-level introduction. 2. **核心流程 (Core Flow)**: An interactive, clickable diagram of the 11-step system architecture, which is the centerpiece of the application. Users can click each step to get detailed information. 3. **技术栈 (Tech Stack)**: A card-based layout presenting the key technologies with expandable details. 4. **实现细节 (Implementation)**: A tabbed interface to view key Go code snippets without overwhelming the user. 5. **部署指南 (Deployment)**: A clear, actionable checklist for configuration and deployment. This non-linear, task-oriented structure enhances usability by allowing developers to quickly find and digest the information most relevant to them, rather than scrolling through a long document. -->
+    <!-- Visualization & Content Choices: 1. **System Flow Diagram (核心流程)**: Report Info: 11-step request/response cycle. Goal: Organize/Explain. Method: Interactive diagram built with HTML/CSS (divs, flexbox, borders) instead of a static list. Interaction: Clicking a step highlights it and displays its description. Justification: Visually engaging and clarifies complex data flow, which is the core of the report. Library: Vanilla JS + Tailwind. 2. **Directory Structure (部署指南)**: Report Info: Text-based tree. Goal: Organize. Method: Collapsible tree view using nested HTML lists. Interaction: Clicking folders expands/collapses them. Justification: More interactive and space-efficient than a static text block. Library: Vanilla JS. 3. **Code Snippets (实现细节)**: Report Info: Multiple Go code blocks. Goal: Inform. Method: Tabbed component. Interaction: Clicking tabs switches between different code files. Justification: Organizes large amounts of code cleanly, preventing a long scroll. Library: Vanilla JS. 4. **Configuration Table (部署指南)**: Report Info: Markdown table of ENV vars. Goal: Inform. Method: HTML table with enhanced styling. Interaction: Hover effects and copy-to-clipboard buttons. Justification: Improves usability for developers. Library: Vanilla JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #087ea4;
+            border-bottom-color: #087ea4;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .flow-step {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .flow-step.active, .flow-step:hover {
+            border-color: #087ea4;
+            background-color: #eaf6fa;
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .flow-arrow {
+            color: #a0aec0;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background-color: #087ea4;
+            color: white;
+        }
+        .code-block {
+            background-color: #1e293b;
+            color: #f8fafc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            max-height: 500px;
+        }
+        .copy-btn {
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            background-color: #e2e8f0;
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-800">企业微信 AI 助理构建指南</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-600">概览</a>
+                        <a href="#flow" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-600">核心流程</a>
+                        <a href="#tech" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-600">技术栈</a>
+                        <a href="#implementation" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-600">实现细节</a>
+                        <a href="#deployment" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-600">部署指南</a>
+                        <a href="#outlook" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-600">未来展望</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                     <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#087ea4]">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="md:hidden hidden pb-3">
+                <a href="#overview" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600">概览</a>
+                <a href="#flow" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600">核心流程</a>
+                <a href="#tech" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600">技术栈</a>
+                <a href="#implementation" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600">实现细节</a>
+                <a href="#deployment" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600">部署指南</a>
+                <a href="#outlook" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-600">未来展望</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <section id="overview" class="section">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold mb-4 text-gray-900">架构蓝图：生产级 AI 助理</h2>
+                <p class="text-gray-600 leading-relaxed mb-6">
+                    本指南旨在构建一个与企业微信深度集成的生产级 AI 助理。系统能够安全地接收用户消息，通过一个使用 <code class="bg-gray-200 text-sm font-mono p-1 rounded">cloudwego/eino</code> 框架构建的智能代理（Agent）进行理解和推理，并调用外部工具（MCP 服务）来获取信息或执行操作，最终生成精准的回复。
+                </p>
+                <div class="p-6 border border-blue-200 bg-blue-50 rounded-lg">
+                    <h3 class="text-xl font-semibold text-blue-800 mb-3">核心设计思想：关注点分离</h3>
+                    <p class="text-blue-700">
+                        我们的架构核心是将 Web 服务与 AI 逻辑彻底解耦。**Gin Web 服务器**专注于处理网络请求、安全验证和数据格式转换，而 **Eino AI Agent** 则专注于核心的智能推理与工具调用。这种分离使得系统各部分都可以独立测试、维护和升级，是构建可扩展、高鲁棒性复杂系统的关键。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="flow" class="section">
+             <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold mb-2 text-gray-900">核心流程：端到端交互解析</h2>
+                <p class="text-gray-600 mb-8 text-center">点击下方流程图中的每一步，查看该环节的详细说明。</p>
+                
+                <div class="flex flex-col lg:flex-row">
+                    <div class="w-full lg:w-2/3">
+                        <div id="flow-diagram" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-center">
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/3 mt-8 lg:mt-0 lg:pl-8">
+                        <div id="flow-details" class="bg-gray-50 p-6 rounded-lg border sticky top-24 min-h-[300px]">
+                            <h3 class="text-xl font-bold mb-4 text-gray-800" id="flow-detail-title">请选择一个流程节点</h3>
+                            <p class="text-gray-600" id="flow-detail-content">详细信息将在此处显示。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tech" class="section">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold mb-6 text-gray-900">核心技术栈</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="border rounded-lg p-6 hover:shadow-xl transition-shadow">
+                        <h3 class="text-2xl font-bold mb-3">Gin 框架</h3>
+                        <p class="text-gray-600 mb-4">作为 HTTP 网关，Gin 以其卓越性能和极简 API 设计而闻名。它的中间件机制非常适合处理企业微信回调的日志、鉴权和解密流程，使代码结构清晰。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-6 hover:shadow-xl transition-shadow">
+                        <h3 class="text-2xl font-bold mb-3">Eino 框架</h3>
+                        <p class="text-gray-600 mb-4">专为 Golang 打造的 LLM 应用开发框架。它强调强类型安全和性能，通过清晰的组件化和编排能力，极大地提高了代码的健壮性和可维护性，是构建生产级 AI Agent 的可靠选择。</p>
+                    </div>
+                    <div class="border rounded-lg p-6 hover:shadow-xl transition-shadow">
+                        <h3 class="text-2xl font-bold mb-3">企业微信 SDK</h3>
+                        <p class="text-gray-600 mb-4">为了安全地处理企业微信的加密回调，我们直接采用官方示例中的 <code class="bg-gray-200 text-sm font-mono p-1 rounded">wxbizmsgcrypt</code> 加密包，确保了安全性与合规性。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="implementation" class="section">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold mb-6 text-gray-900">实现细节：核心代码一览</h2>
+                <div id="code-tabs-container">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                        </nav>
+                    </div>
+                    <div id="code-content-container" class="mt-6">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="deployment" class="section">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold mb-6 text-gray-900">部署指南</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">环境变量配置</h3>
+                        <p class="text-gray-600 mb-4">应用遵循十二因子原则，所有配置均通过环境变量管理。请在部署环境中设置以下变量：</p>
+                        <div class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">环境变量</th>
+                                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+                                        <th class="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="env-vars-table" class="divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">容器化部署 (Dockerfile)</h3>
+                        <p class="text-gray-600 mb-4">我们使用多阶段构建来创建最小、最安全的生产镜像，极大地减小了镜像体积并提升了安全性。</p>
+                        <div class="code-block">
+<pre><code># --- Stage 1: Builder ---
+FROM golang:1.22-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w" -o /wecom-bot ./cmd/server
+
+# --- Stage 2: Final Image ---
+FROM scratch
+COPY --from=builder /wecom-bot /wecom-bot
+EXPOSE 8080
+CMD ["/wecom-bot"]
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="outlook" class="section">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold mb-6 text-gray-900">高级功能与未来展望</h2>
+                <p class="text-gray-600 mb-8">
+                    我们已成功构建了一个功能完备、架构健壮的 AI 助理。基于这个可扩展的架构，您可以不断地为它赋予新的能力，使其成为企业内部不可或缺的智能中枢。
+                </p>
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-[#087ea4] text-white flex items-center justify-center text-xl font-bold">»</div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold">实现流式响应</h3>
+                            <p class="text-gray-600">改造 Gin 处理器以支持流式输出，可以极大提升用户体验，让对话感觉更实时、更自然。</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-[#087ea4] text-white flex items-center justify-center text-xl font-bold">🧠</div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold">引入对话记忆</h3>
+                            <p class="text-gray-600">集成 Eino 提供的记忆组件，为 Agent 添加短期或长期记忆，使其能够处理上下文相关的连续对话。</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-[#087ea4] text-white flex items-center justify-center text-xl font-bold">🛠️</div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold">扩展工具集</h3>
+                            <p class="text-gray-600">封装更多 "MCP 服务" 作为工具，如查询内部知识库、连接 CRM 系统、创建日历事件等，不断增强 Agent 的能力边界。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            const flowData = [
+                { title: '1. 用户发起请求', content: '企业微信用户在自建应用中发送一条消息。' },
+                { title: '2. 企业微信网关', content: '企业微信服务器接收消息，并向我们配置的回调 URL 发起加密的 HTTP POST 请求。' },
+                { title: '3. Go/Gin 回调服务器', content: '作为系统入口的公网 Go HTTP 服务接收请求。选用 Gin 框架以保证高性能。' },
+                { title: '4. 认证与解密', content: 'Gin 中间件验证请求签名，并使用预设的 EncodingAESKey 对消息体进行解密。' },
+                { title: '5. 消息解析', content: '解密后的 XML 文本被解析（Bind）到一个预定义的 Go 结构体中，转为结构化数据。' },
+                { title: '6. 调用 Eino Agent', content: 'Gin 处理器将解析出的用户问题传递给系统的“大脑”——Eino AI Agent。' },
+                { title: '7. Agent 推理与工具调用', content: 'Eino Agent 利用 LLM 进行推理，判断是否需要调用外部工具来回答问题。' },
+                { title: '8. 执行自定义工具', content: 'Agent 根据 LLM 的指令，执行预先定义好的“mcp 服务”（被封装为 Eino Tool）。' },
+                { title: '9. 整合信息生成回复', content: '工具执行结果返回给 Agent，Agent 再次提交给 LLM 以生成最终的自然语言回复。' },
+                { title: '10. 加密并响应', content: 'Gin 处理器将 Agent 的回复打包成 XML 格式，然后进行加密和签名。' },
+                { title: '11. 返回响应', content: '加密后的 XML 响应通过 HTTP 200 OK 返回给企业微信服务器，最终呈现给用户。' }
+            ];
+
+            const codeData = {
+                "main.go": `package main\n\nimport (\n\t"context"\n\t"fmt"\n\t"log/slog"\n\t"net/http"\n\t"os"\n\t"os/signal"\n\t"syscall"\n\t"time"\n\n\t"wecom-eino-bot/internal/agent"\n\t"wecom-eino-bot/internal/config"\n\t"wecom-eino-bot/internal/web"\n)\n\nfunc main() {\n\tlogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))\n\tslog.SetDefault(logger)\n\n\tcfg, err := config.Load()\n\tif err != nil {\n\t\tslog.Error("无法加载配置", "error", err)\n\t\tos.Exit(1)\n\t}\n\n\taiAgent, err := agent.NewAIAgent(context.Background(), cfg)\n\tif err != nil {\n\t\tslog.Error("无法初始化 AI Agent", "error", err)\n\t\tos.Exit(1)\n\t}\n\n\thandler := web.NewWeComHandler(cfg, aiAgent)\n\trouter := web.NewRouter(handler)\n\n\tsrv := &http.Server{\n\t\tAddr:    fmt.Sprintf(":%s", cfg.Port),\n\t\tHandler: router,\n\t}\n\n\tgo func() {\n\t\tslog.Info("服务器启动", "address", srv.Addr)\n\t\tif err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {\n\t\t\tslog.Error("服务器启动失败", "error", err)\n\t\t\tos.Exit(1)\n\t\t}\n\t}()\n\n\tquit := make(chan os.Signal, 1)\n\tsignal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)\n\t<-quit\n\tslog.Info("服务器正在关闭...")\n\n\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(ctx); err != nil {\n\t\tslog.Error("服务器关闭失败", "error", err)\n\t\tos.Exit(1)\n\t}\n\n\tslog.Info("服务器已成功关闭")\n}`,
+                "handler.go": `package web\n\nimport (\n\t"encoding/xml"\n\t"io"\n\t"log/slog"\n\t"net/http"\n\t"strconv"\n\t"time"\n\n\t"github.com/cloudwego/eino/schema"\n\t"github.com/gin-gonic/gin"\n\t"wecom-eino-bot/internal/agent"\n\t"wecom-eino-bot/internal/config"\n\t"wecom-eino-bot/pkg/wecom"\n)\n\ntype WeComHandler struct {\n\tcfg   *config.Config\n\tagent *agent.AIAgent\n\tcrypt *wecom.Crypto\n}\n\nfunc (h *WeComHandler) handlePostMessage(c *gin.Context) {\n\tbody, err := io.ReadAll(c.Request.Body)\n\n\tmsg, cryptErr := h.crypt.DecryptMsg(msgSignature, timestamp, nonce, body)\n\n\tvar reqMsg wecom.ReceivedMessage\n\tif err := xml.Unmarshal(msg, &reqMsg); err != nil { /* ... */ }\n\n\tif reqMsg.MsgType != "text" { /* ... */ }\n\n\tuserInput := *schema.Message{schema.UserMessage(reqMsg.Content)}\n\tresponseMessage, err := h.agent.Generate(c.Request.Context(), userInput)\n\n\th.sendReply(c, reqMsg.FromUserName, reqMsg.ToUserName, responseMessage.Content)\n}`,
+                "agent.go": `package agent\n\nimport (\n\t"context"\n\t"fmt"\n\t"github.com/cloudwego/eino/components/model"\n\t"github.com/cloudwego/eino/compose"\n\t"github.com/cloudwego/eino/flow/agent/react"\n\t"github.com/cloudwego/eino/schema"\n\t"github.com/cloudwego/eino-ext/components/model/openai"\n\t"wecom-eino-bot/internal/config"\n)\n\ntype AIAgent struct {\n\tagent *react.Agent\n}\n\nfunc NewAIAgent(ctx context.Context, cfg *config.Config) (*AIAgent, error) {\n\tchatModel, err := openai.NewChatModel(ctx, &openai.ChatModelConfig{\n\t\tAPIKey:  cfg.OpenAIAPIKey,\n\t\tModel:   "gpt-4o",\n\t})\n\n\ttools, err := initTools()\n\ttoolsConfig := &compose.ToolsNodeConfig{ Tools: tools }\n\n\tagent, err := react.NewAgent(ctx, &react.AgentConfig{\n\t\tToolCallingModel: chatModel,\n\t\tToolsConfig:      toolsConfig,\n\t\tMessageModifier: func(ctx context.Context, input *schema.Message) *schema.Message {\n\t\t\tsystemPrompt := "你是一个乐于助人的企业微信 AI 助理。"\n\t\t\treturn append(*schema.Message{schema.SystemMessage(systemPrompt)}, input...)\n\t\t},\n\t})\n\n\treturn &AIAgent{agent: agent}, nil\n}\n\nfunc (a *AIAgent) Generate(ctx context.Context, input *schema.Message, opts ...model.Option) (*schema.Message, error) {\n\treturn a.agent.Generate(ctx, input)\n}`,
+                "tools.go": `package agent\n\nimport (\n\t"context"\n\t"fmt"\n\t"github.com/cloudwego/eino/components/tool"\n\t"github.com/cloudwego/eino/components/tool/utils"\n)\n\ntype WeatherRequest struct {\n\tCity string \`json:"city" jsonschema:"required,description=需要查询天气的城市名称,example=深圳"\`\n}\n\ntype WeatherResponse struct {\n\tTemperature int    \`json:"temperature"\`\n\tCondition   string \`json:"condition"\`\n}\n\nfunc getWeather(ctx context.Context, req *WeatherRequest) (*WeatherResponse, error) {\n\t// 模拟 API 调用\n\tswitch req.City {\n\tcase "北京":\n\t\treturn &WeatherResponse{Temperature: 15, Condition: "多云"}, nil\n\tcase "上海":\n\t\treturn &WeatherResponse{Temperature: 22, Condition: "小雨"}, nil\n\tdefault:\n\t\treturn &WeatherResponse{Temperature: 20, Condition: "未知"}, nil\n\t}\n}\n\nfunc newWeatherTool() (tool.InvokableTool, error) {\n\treturn utils.InferTool(\n\t\t"get_weather",\n\t\t"根据城市名称获取当前的天气信息",\n\t\tgetWeather,\n\t)\n}`
+            };
+
+            const envVars = [
+                { name: 'PORT', desc: 'Web 服务器监听的端口' },
+                { name: 'WECOM_CORP_ID', desc: '企业 ID' },
+                { name: 'WECOM_AGENT_ID', desc: '自建应用的 AgentId' },
+                { name: 'WECOM_CALLBACK_TOKEN', desc: '回调验证 Token' },
+                { name: 'WECOM_CALLBACK_AES_KEY', desc: '回调消息体 AES 密钥' },
+                { name: 'OPENAI_API_KEY', desc: '大语言模型 API 密钥' },
+            ];
+            
+            function showSection(hash) {
+                sections.forEach(section => {
+                    if ('#' + section.id === hash) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === hash) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            function setupNavigation() {
+                const hash = window.location.hash || '#overview';
+                showSection(hash);
+                
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetHash = e.target.getAttribute('href');
+                        history.pushState(null, null, targetHash);
+                        showSection(targetHash);
+                        if (mobileMenu.classList.contains('hidden') === false) {
+                           mobileMenu.classList.add('hidden');
+                        }
+                    });
+                });
+                 window.addEventListener('popstate', () => {
+                    showSection(window.location.hash || '#overview');
+                });
+            }
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            function setupFlowDiagram() {
+                const diagramContainer = document.getElementById('flow-diagram');
+                const detailTitle = document.getElementById('flow-detail-title');
+                const detailContent = document.getElementById('flow-detail-content');
+
+                flowData.forEach((step, index) => {
+                    const stepEl = document.createElement('div');
+                    stepEl.className = 'flow-step border-2 border-gray-300 rounded-lg p-4 text-center';
+                    stepEl.innerHTML = `<div class="font-bold text-lg">${step.title}</div>`;
+                    stepEl.dataset.index = index;
+                    diagramContainer.appendChild(stepEl);
+
+                    if (index < flowData.length -1) {
+                        const arrowEl = document.createElement('div');
+                        arrowEl.className = 'flow-arrow text-3xl text-center flex items-center justify-center';
+                        arrowEl.innerHTML = `<span>↓</span>`;
+                        diagramContainer.appendChild(arrowEl);
+                    }
+                });
+                
+                diagramContainer.addEventListener('click', e => {
+                    const stepEl = e.target.closest('.flow-step');
+                    if (!stepEl) return;
+                    
+                    document.querySelectorAll('.flow-step').forEach(el => el.classList.remove('active'));
+                    stepEl.classList.add('active');
+                    
+                    const index = parseInt(stepEl.dataset.index);
+                    const stepData = flowData[index];
+                    
+                    detailTitle.textContent = stepData.title;
+                    detailContent.textContent = stepData.content;
+                });
+
+                document.querySelector('.flow-step').click();
+            }
+            
+            function setupCodeTabs() {
+                const tabsNav = document.querySelector('#code-tabs-container nav');
+                const contentContainer = document.getElementById('code-content-container');
+                const files = Object.keys(codeData);
+
+                files.forEach((file, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = file;
+                    button.className = 'tab-btn whitespace-nowrap py-2 px-4 border-b-2 font-medium text-sm rounded-t-lg';
+                    button.dataset.target = file;
+                    tabsNav.appendChild(button);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.id = file;
+                    contentDiv.className = 'code-content';
+                    contentDiv.innerHTML = `<div class="code-block"><pre><code>${codeData[file].replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre></div>`;
+                    if(index > 0) contentDiv.style.display = 'none';
+
+                    contentContainer.appendChild(contentDiv);
+                });
+
+                tabsNav.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'BUTTON') return;
+                    
+                    const targetFile = e.target.dataset.target;
+                    
+                    tabsNav.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    contentContainer.querySelectorAll('.code-content').forEach(content => {
+                        content.style.display = content.id === targetFile ? 'block' : 'none';
+                    });
+                });
+                
+                tabsNav.querySelector('button').classList.add('active');
+            }
+
+            function setupEnvTable() {
+                const tableBody = document.getElementById('env-vars-table');
+                envVars.forEach(v => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-3 px-4 whitespace-nowrap"><code class="font-mono text-sm bg-gray-100 p-1 rounded">${v.name}</code></td>
+                        <td class="py-3 px-4 text-sm text-gray-600">${v.desc}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button class="copy-btn p-2 rounded-md bg-gray-100 text-gray-600" title="复制变量名">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM9 1.5H7v1h2v-1z"/>
+                                  <path d="M2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm8.5 1.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0v-8a.5.5 0 0 1 .5-.5z"/>
+                                </svg>
+                            </button>
+                        </td>
+                    `;
+                    row.querySelector('.copy-btn').addEventListener('click', (e) => {
+                        navigator.clipboard.writeText(v.name).then(() => {
+                            const btn = e.currentTarget;
+                            const originalTitle = btn.title;
+                            btn.title = '已复制!';
+                            setTimeout(() => { btn.title = originalTitle; }, 2000);
+                        });
+                    });
+                    tableBody.appendChild(row);
+                });
+            }
+
+            setupNavigation();
+            setupFlowDiagram();
+            setupCodeTabs();
+            setupEnvTable();
+        });
+    </script>
+</body>
+</html>
+

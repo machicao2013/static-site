@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K歌平台风控分析报告 - 2026-03-11 ~ 2026-03-17</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; }
+.container { max-width: 1400px; margin: 0 auto; padding: 16px; }
+.header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: 28px 32px; border-radius: 12px; margin-bottom: 20px; }
+.header h1 { font-size: 22px; margin-bottom: 6px; }
+.header .meta { font-size: 13px; opacity: 0.85; }
+.header .rating { display: inline-block; background: #fef2f2; color: #ef4444; padding: 4px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; margin-top: 8px; }
+.section { background: white; border-radius: 10px; padding: 20px 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.section h2 { font-size: 17px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 10px; }
+.kpi-card { background: #f8fafc; border-radius: 8px; padding: 12px 14px; text-align: center; border: 1px solid #e2e8f0; }
+.kpi-card.risk { background: #fef2f2; border-color: #fecaca; }
+.kpi-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+.kpi-value { font-size: 18px; font-weight: bold; }
+.summary { font-size: 13px; color: #475569; margin: 10px 0; padding: 10px 14px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #3b82f6; }
+.summary.risk { border-left-color: #ef4444; background: #fef2f2; }
+.summary.warn { border-left-color: #f59e0b; background: #fffbeb; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 10px 0; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; color: #64748b; font-weight: 600; font-size: 11px; }
+tr:hover { background: #f8fafc; }
+td.danger { color: #ef4444; font-weight: bold; }
+td.warn { color: #f59e0b; font-weight: bold; }
+.issue-card { background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
+.issue-header { font-size: 13px; margin-bottom: 4px; }
+.issue-level { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.issue-desc { font-size: 12px; color: #475569; }
+.chart-container { margin: 8px 0; }
+circle.data-point:hover { r: 5; opacity: 1; cursor: pointer; }
+.risk-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+.risk-split-card { background: #f8fafc; border-radius: 8px; padding: 14px; border: 1px solid #e2e8f0; }
+.risk-split-card h4 { font-size: 13px; color: #475569; margin-bottom: 6px; }
+.risk-split-card .val { font-size: 20px; font-weight: bold; }
+.footer { text-align: center; padding: 16px; font-size: 11px; color: #94a3b8; }
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+    <h1>🛡️ K歌平台风控分析报告</h1>
+    <div class="meta">数据范围: 2026-03-11 ~ 2026-03-17 · 进行中活动: 262个</div>
+    <div class="rating">🔴 风险</div>
+</div>
+
+<!-- S1: Platform KPI -->
+<div class="section">
+    <h2>📊 S1 · 平台概览</h2>
+    <div class="kpi-grid">
+<div class="kpi-card"><div class="kpi-label">进行中活动</div><div class="kpi-value" style="color:#3b82f6">262个</div></div>
+<div class="kpi-card"><div class="kpi-label">福利发放总额</div><div class="kpi-value" style="color:#3b82f6">¥902.7万</div></div>
+<div class="kpi-card"><div class="kpi-label">福利发放数量</div><div class="kpi-value" style="color:#3b82f6">4.5亿笔</div></div>
+<div class="kpi-card"><div class="kpi-label">活动总产出</div><div class="kpi-value" style="color:#3b82f6">¥3700.5万</div></div>
+<div class="kpi-card"><div class="kpi-label">活动总成本(估)</div><div class="kpi-value" style="color:#f59e0b">¥213.0万</div></div>
+<div class="kpi-card"><div class="kpi-label">参与用户数</div><div class="kpi-value" style="color:#3b82f6">608.8万人</div></div>
+</div>
+<div class="kpi-grid risk-kpi">
+<div class="kpi-card risk"><div class="kpi-label">高风险用户</div><div class="kpi-value" style="color:#ef4444">1.8万人</div></div>
+<div class="kpi-card risk"><div class="kpi-label">高风险UV占比</div><div class="kpi-value" style="color:#ef4444">0.29%</div></div>
+<div class="kpi-card risk"><div class="kpi-label">黑产设备用户</div><div class="kpi-value" style="color:#7c3aed">2.9千人</div></div>
+<div class="kpi-card risk"><div class="kpi-label">风险金额</div><div class="kpi-value" style="color:#ef4444">¥4.8万</div></div>
+<div class="kpi-card risk"><div class="kpi-label">风险发放数量</div><div class="kpi-value" style="color:#ef4444">11.5亿笔</div></div>
+<div class="kpi-card risk"><div class="kpi-label">跨活动黑产</div><div class="kpi-value" style="color:#7c3aed">≥30人</div></div>
+</div>
+
+    <div class="summary">📌 本周K歌平台共262个活动产生福利发放，总发放金额¥902.7万，参与用户608.8万人。高风险用户UV占比0.29%，检测到2949个黑产设备用户，需重点关注。</div>
+</div>
+
+<!-- S2: Operations Trend -->
+<div class="section">
+    <h2>📈 S2 · 运营趋势总览</h2>
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">福利发放金额趋势</text>
+<line x1="700" y1="14" x2="712" y2="14" stroke="#22c55e" stroke-width="2"/>
+<text x="715" y="18" font-size="10" fill="#64748b">发放UV(人)</text>
+<line x1="600" y1="14" x2="612" y2="14" stroke="#3b82f6" stroke-width="2"/>
+<text x="615" y="18" font-size="10" fill="#64748b">发放金额(元)</text>
+<line x1="70" y1="40" x2="70" y2="150" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70" y1="150" x2="730" y2="150" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="180.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="290.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="400.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="510.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="620.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="730.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<line x1="70" y1="150.0" x2="730" y2="150.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="153.0" font-size="9" fill="#94a3b8" text-anchor="end">¥0</text>
+<line x1="70" y1="122.5" x2="730" y2="122.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="125.5" font-size="9" fill="#94a3b8" text-anchor="end">¥35.0万</text>
+<line x1="70" y1="95.0" x2="730" y2="95.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="98.0" font-size="9" fill="#94a3b8" text-anchor="end">¥70.0万</text>
+<line x1="70" y1="67.5" x2="730" y2="67.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="70.5" font-size="9" fill="#94a3b8" text-anchor="end">¥105.0万</text>
+<line x1="70" y1="40.0" x2="730" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">¥140.0万</text>
+<polyline points="70.0,50.2 180.0,52.2 290.0,51.9 400.0,40.0 510.0,45.3 620.0,52.5 730.0,48.4" fill="none" stroke="#3b82f6" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="50.2" r="3" fill="#3b82f6" opacity="0.8"><title>03-11
+发放金额(元): ¥127.0万</title></circle>
+<circle class="data-point" cx="180.0" cy="52.2" r="3" fill="#3b82f6" opacity="0.8"><title>03-12
+发放金额(元): ¥124.4万</title></circle>
+<circle class="data-point" cx="290.0" cy="51.9" r="3" fill="#3b82f6" opacity="0.8"><title>03-13
+发放金额(元): ¥124.8万</title></circle>
+<circle class="data-point" cx="400.0" cy="40.0" r="3" fill="#3b82f6" opacity="0.8"><title>03-14
+发放金额(元): ¥140.0万</title></circle>
+<circle class="data-point" cx="510.0" cy="45.3" r="3" fill="#3b82f6" opacity="0.8"><title>03-15
+发放金额(元): ¥133.2万</title></circle>
+<circle class="data-point" cx="620.0" cy="52.5" r="3" fill="#3b82f6" opacity="0.8"><title>03-16
+发放金额(元): ¥124.0万</title></circle>
+<circle class="data-point" cx="730.0" cy="48.4" r="3" fill="#3b82f6" opacity="0.8"><title>03-17
+发放金额(元): ¥129.2万</title></circle>
+<text x="735" y="153.0" font-size="9" fill="#22c55e" text-anchor="start">0</text>
+<text x="735" y="125.5" font-size="9" fill="#22c55e" text-anchor="start">60.2万</text>
+<text x="735" y="98.0" font-size="9" fill="#22c55e" text-anchor="start">120.3万</text>
+<text x="735" y="70.5" font-size="9" fill="#22c55e" text-anchor="start">180.5万</text>
+<text x="735" y="43.0" font-size="9" fill="#22c55e" text-anchor="start">240.6万</text>
+<polyline points="70.0,45.0 180.0,40.0 290.0,40.4 400.0,40.1 510.0,42.0 620.0,42.7 730.0,42.5" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,2"/>
+<circle class="data-point" cx="70.0" cy="45.0" r="3" fill="#22c55e" opacity="0.8"><title>03-11
+发放UV(人): 229.7万</title></circle>
+<circle class="data-point" cx="180.0" cy="40.0" r="3" fill="#22c55e" opacity="0.8"><title>03-12
+发放UV(人): 240.6万</title></circle>
+<circle class="data-point" cx="290.0" cy="40.4" r="3" fill="#22c55e" opacity="0.8"><title>03-13
+发放UV(人): 239.7万</title></circle>
+<circle class="data-point" cx="400.0" cy="40.1" r="3" fill="#22c55e" opacity="0.8"><title>03-14
+发放UV(人): 240.5万</title></circle>
+<circle class="data-point" cx="510.0" cy="42.0" r="3" fill="#22c55e" opacity="0.8"><title>03-15
+发放UV(人): 236.2万</title></circle>
+<circle class="data-point" cx="620.0" cy="42.7" r="3" fill="#22c55e" opacity="0.8"><title>03-16
+发放UV(人): 234.7万</title></circle>
+<circle class="data-point" cx="730.0" cy="42.5" r="3" fill="#22c55e" opacity="0.8"><title>03-17
+发放UV(人): 235.2万</title></circle>
+</svg>
+</div>
+    <div class="summary">📌 福利发放日均¥129.0万，3/14达到峰值¥140.0万。金额TOP5: 网赚-金币兑换(25.4%)、网赚-看广告得K币礼物(12.2%)、增长-换量(7.5%)、网赚-摇钱树(6.1%)、财富等级升级礼包(5.7%)。整体趋势平稳，无明显异常波动。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 140" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">福利发放数量趋势</text>
+<line x1="720" y1="14" x2="732" y2="14" stroke="#94a3b8" stroke-width="2"/>
+<text x="735" y="18" font-size="10" fill="#64748b">发放数量(笔)</text>
+<line x1="70" y1="40" x2="70" y2="110" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70" y1="110" x2="750" y2="110" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="183.33333333333331" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="296.66666666666663" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="410.0" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="523.3333333333333" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="636.6666666666667" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="750.0" y="125" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<line x1="70" y1="110.0" x2="750" y2="110.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="113.0" font-size="9" fill="#94a3b8" text-anchor="end">0</text>
+<line x1="70" y1="92.5" x2="750" y2="92.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="95.5" font-size="9" fill="#94a3b8" text-anchor="end">1664.4万</text>
+<line x1="70" y1="75.0" x2="750" y2="75.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="78.0" font-size="9" fill="#94a3b8" text-anchor="end">3328.7万</text>
+<line x1="70" y1="57.5" x2="750" y2="57.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="60.5" font-size="9" fill="#94a3b8" text-anchor="end">4993.1万</text>
+<line x1="70" y1="40.0" x2="750" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">6657.5万</text>
+<polyline points="70.0,42.5 183.3,41.7 296.7,41.2 410.0,40.0 523.3,40.1 636.7,43.6 750.0,43.7" fill="none" stroke="#94a3b8" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="42.5" r="3" fill="#94a3b8" opacity="0.8"><title>03-11
+发放数量(笔): 6421.8万</title></circle>
+<circle class="data-point" cx="183.3" cy="41.7" r="3" fill="#94a3b8" opacity="0.8"><title>03-12
+发放数量(笔): 6499.7万</title></circle>
+<circle class="data-point" cx="296.7" cy="41.2" r="3" fill="#94a3b8" opacity="0.8"><title>03-13
+发放数量(笔): 6540.9万</title></circle>
+<circle class="data-point" cx="410.0" cy="40.0" r="3" fill="#94a3b8" opacity="0.8"><title>03-14
+发放数量(笔): 6657.5万</title></circle>
+<circle class="data-point" cx="523.3" cy="40.1" r="3" fill="#94a3b8" opacity="0.8"><title>03-15
+发放数量(笔): 6647.2万</title></circle>
+<circle class="data-point" cx="636.7" cy="43.6" r="3" fill="#94a3b8" opacity="0.8"><title>03-16
+发放数量(笔): 6315.0万</title></circle>
+<circle class="data-point" cx="750.0" cy="43.7" r="3" fill="#94a3b8" opacity="0.8"><title>03-17
+发放数量(笔): 6305.6万</title></circle>
+</svg>
+</div>
+    <div class="summary">📌 日均发放约6484.0万笔，发放数量平稳。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">活动总产出趋势</text>
+<line x1="720" y1="14" x2="732" y2="14" stroke="#3b82f6" stroke-width="2"/>
+<text x="735" y="18" font-size="10" fill="#64748b">总产出(元)</text>
+<line x1="70" y1="150.0" x2="750" y2="150.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="153.0" font-size="9" fill="#94a3b8" text-anchor="end">¥0</text>
+<line x1="70" y1="122.5" x2="750" y2="122.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="125.5" font-size="9" fill="#94a3b8" text-anchor="end">¥161.0万</text>
+<line x1="70" y1="95.0" x2="750" y2="95.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="98.0" font-size="9" fill="#94a3b8" text-anchor="end">¥321.9万</text>
+<line x1="70" y1="67.5" x2="750" y2="67.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="70.5" font-size="9" fill="#94a3b8" text-anchor="end">¥482.9万</text>
+<line x1="70" y1="40.0" x2="750" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">¥643.9万</text>
+<text x="70.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="183.33333333333331" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="296.66666666666663" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="410.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="523.3333333333333" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="636.6666666666667" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="750.0" y="165" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<polygon points="70.0,68.1 183.3,67.9 296.7,64.6 410.0,40.0 523.3,50.0 636.7,68.7 750.0,58.5 750.0,150.0 70.0,150.0" fill="#3b82f6" fill-opacity="0.15"/>
+<polyline points="70.0,68.1 183.3,67.9 296.7,64.6 410.0,40.0 523.3,50.0 636.7,68.7 750.0,58.5" fill="none" stroke="#3b82f6" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="68.1" r="3" fill="#3b82f6" opacity="0.8"><title>03-11
+总产出(元): ¥479.3万</title></circle>
+<circle class="data-point" cx="183.3" cy="67.9" r="3" fill="#3b82f6" opacity="0.8"><title>03-12
+总产出(元): ¥480.4万</title></circle>
+<circle class="data-point" cx="296.7" cy="64.6" r="3" fill="#3b82f6" opacity="0.8"><title>03-13
+总产出(元): ¥499.8万</title></circle>
+<circle class="data-point" cx="410.0" cy="40.0" r="3" fill="#3b82f6" opacity="0.8"><title>03-14
+总产出(元): ¥643.9万</title></circle>
+<circle class="data-point" cx="523.3" cy="50.0" r="3" fill="#3b82f6" opacity="0.8"><title>03-15
+总产出(元): ¥585.6万</title></circle>
+<circle class="data-point" cx="636.7" cy="68.7" r="3" fill="#3b82f6" opacity="0.8"><title>03-16
+总产出(元): ¥475.9万</title></circle>
+<circle class="data-point" cx="750.0" cy="58.5" r="3" fill="#3b82f6" opacity="0.8"><title>03-17
+总产出(元): ¥535.6万</title></circle>
+</svg>
+</div>
+    <div class="summary">📌 活动产出日均¥528.6万，3/14产出达峰值¥643.9万。本时段无用户投入记录，仅展示活动产出。产出TOP5: TMEPAY自建支付(67.7%)、网赚-金币兑换(6.7%)、网赚-看广告得K币礼物(3.7%)、砸蛋比大小(2.7%)、萌宠觅食(2.3%)。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">活动成本趋势(估算)</text>
+<line x1="720" y1="14" x2="732" y2="14" stroke="#ef4444" stroke-width="2"/>
+<text x="735" y="18" font-size="10" fill="#64748b">每日成本(元)</text>
+<line x1="70" y1="40" x2="70" y2="130" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70" y1="130" x2="750" y2="130" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="183.33333333333331" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="296.66666666666663" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="410.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="523.3333333333333" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="636.6666666666667" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="750.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<line x1="70" y1="130.0" x2="750" y2="130.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="133.0" font-size="9" fill="#94a3b8" text-anchor="end">¥0</text>
+<line x1="70" y1="107.5" x2="750" y2="107.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="110.5" font-size="9" fill="#94a3b8" text-anchor="end">¥8.0万</text>
+<line x1="70" y1="85.0" x2="750" y2="85.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="88.0" font-size="9" fill="#94a3b8" text-anchor="end">¥16.0万</text>
+<line x1="70" y1="62.5" x2="750" y2="62.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="65.5" font-size="9" fill="#94a3b8" text-anchor="end">¥24.0万</text>
+<line x1="70" y1="40.0" x2="750" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">¥32.0万</text>
+<polyline points="70.0,48.3 183.3,48.3 296.7,47.4 410.0,40.0 523.3,41.8 636.7,44.3 750.0,41.6" fill="none" stroke="#ef4444" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="48.3" r="3" fill="#ef4444" opacity="0.8"><title>03-11
+每日成本(元): ¥29.1万</title></circle>
+<circle class="data-point" cx="183.3" cy="48.3" r="3" fill="#ef4444" opacity="0.8"><title>03-12
+每日成本(元): ¥29.1万</title></circle>
+<circle class="data-point" cx="296.7" cy="47.4" r="3" fill="#ef4444" opacity="0.8"><title>03-13
+每日成本(元): ¥29.4万</title></circle>
+<circle class="data-point" cx="410.0" cy="40.0" r="3" fill="#ef4444" opacity="0.8"><title>03-14
+每日成本(元): ¥32.0万</title></circle>
+<circle class="data-point" cx="523.3" cy="41.8" r="3" fill="#ef4444" opacity="0.8"><title>03-15
+每日成本(元): ¥31.4万</title></circle>
+<circle class="data-point" cx="636.7" cy="44.3" r="3" fill="#ef4444" opacity="0.8"><title>03-16
+每日成本(元): ¥30.5万</title></circle>
+<circle class="data-point" cx="750.0" cy="41.6" r="3" fill="#ef4444" opacity="0.8"><title>03-17
+每日成本(元): ¥31.5万</title></circle>
+</svg>
+</div>
+    <div class="summary">📌 活动成本日均¥30.4万，总成本估算¥213.0万。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="200" y="18" font-size="13" font-weight="bold" fill="#1e293b">成本 TOP10 活动</text>
+<text x="195" y="48.75" font-size="11" fill="#475569" text-anchor="end">网赚-金币兑换</text>
+<rect x="200" y="35.0" width="440.0" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="645.0" y="48.75" font-size="10" fill="#64748b">¥71.5万（占33.6%） </text>
+<text x="195" y="74.25" font-size="11" fill="#475569" text-anchor="end">网赚-看广告得K币礼物</text>
+<rect x="200" y="60.5" width="236.0" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="440.97334010620773" y="74.25" font-size="10" fill="#64748b">¥38.3万（占18.0%） </text>
+<text x="195" y="99.75" font-size="11" fill="#475569" text-anchor="end">网赚-摇钱树</text>
+<rect x="200" y="86.0" width="99.6" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="304.601573190136" y="99.75" font-size="10" fill="#64748b">¥16.2万（占7.6%） </text>
+<text x="195" y="125.25" font-size="11" fill="#475569" text-anchor="end">增长-换量</text>
+<rect x="200" y="111.5" width="83.1" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="288.1003870751613" y="125.25" font-size="10" fill="#64748b">¥13.5万（占6.3%） </text>
+<text x="195" y="150.75" font-size="11" fill="#475569" text-anchor="end">超订AI点数权益</text>
+<rect x="200" y="137.0" width="80.2" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="285.19676235621034" y="150.75" font-size="10" fill="#64748b">¥13.0万（占6.1%） </text>
+<text x="195" y="176.25" font-size="11" fill="#475569" text-anchor="end">增长-金币节活动</text>
+<rect x="200" y="162.5" width="61.3" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="266.2772474774042" y="176.25" font-size="10" fill="#64748b">¥10.0万（占4.7%） </text>
+<text x="195" y="201.75" font-size="11" fill="#475569" text-anchor="end">网赚-下载专区</text>
+<rect x="200" y="188.0" width="51.2" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="256.23591725607025" y="201.75" font-size="10" fill="#64748b">¥8.3万（占3.9%） </text>
+<text x="195" y="227.25" font-size="11" fill="#475569" text-anchor="end">充值盛典</text>
+<rect x="200" y="213.5" width="32.4" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="237.3977180422849" y="227.25" font-size="10" fill="#64748b">¥5.3万（占2.5%） </text>
+<text x="195" y="252.75" font-size="11" fill="#475569" text-anchor="end">免模-看广告发VIP</text>
+<rect x="200" y="239.0" width="28.9" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="233.88083276011713" y="252.75" font-size="10" fill="#64748b">¥4.7万（占2.2%） </text>
+<text x="195" y="278.25" font-size="11" fill="#475569" text-anchor="end">免模激励物</text>
+<rect x="200" y="264.5" width="27.2" height="19.5" rx="3" fill="#f59e0b" fill-opacity="0.8"/>
+<text x="232.20302150766236" y="278.25" font-size="10" fill="#64748b">¥4.4万（占2.1%） </text>
+</svg>
+</div>
+</div>
+
+<!-- S3: Risk -->
+<div class="section">
+    <h2>🚨 S3 · 风险态势</h2>
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">高风险用户数趋势</text>
+<line x1="700" y1="14" x2="712" y2="14" stroke="#7c3aed" stroke-width="2"/>
+<text x="715" y="18" font-size="10" fill="#64748b">黑产设备(人)</text>
+<line x1="600" y1="14" x2="612" y2="14" stroke="#ef4444" stroke-width="2"/>
+<text x="615" y="18" font-size="10" fill="#64748b">高风险UV(人)</text>
+<line x1="70" y1="40" x2="70" y2="130" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70" y1="130" x2="730" y2="130" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="180.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="290.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="400.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="510.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="620.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="730.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<line x1="70" y1="130.0" x2="730" y2="130.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="133.0" font-size="9" fill="#94a3b8" text-anchor="end">0</text>
+<line x1="70" y1="107.5" x2="730" y2="107.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="110.5" font-size="9" fill="#94a3b8" text-anchor="end">2.3千</text>
+<line x1="70" y1="85.0" x2="730" y2="85.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="88.0" font-size="9" fill="#94a3b8" text-anchor="end">4.6千</text>
+<line x1="70" y1="62.5" x2="730" y2="62.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="65.5" font-size="9" fill="#94a3b8" text-anchor="end">6.9千</text>
+<line x1="70" y1="40.0" x2="730" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">9.3千</text>
+<polyline points="70.0,62.9 180.0,40.0 290.0,48.5 400.0,44.1 510.0,58.5 620.0,61.5 730.0,61.8" fill="none" stroke="#ef4444" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="62.9" r="3" fill="#ef4444" opacity="0.8"><title>03-11
+高风险UV(人): 6.9千</title></circle>
+<circle class="data-point" cx="180.0" cy="40.0" r="3" fill="#ef4444" opacity="0.8"><title>03-12
+高风险UV(人): 9.3千</title></circle>
+<circle class="data-point" cx="290.0" cy="48.5" r="3" fill="#ef4444" opacity="0.8"><title>03-13
+高风险UV(人): 8.4千</title></circle>
+<circle class="data-point" cx="400.0" cy="44.1" r="3" fill="#ef4444" opacity="0.8"><title>03-14
+高风险UV(人): 8.8千</title></circle>
+<circle class="data-point" cx="510.0" cy="58.5" r="3" fill="#ef4444" opacity="0.8"><title>03-15
+高风险UV(人): 7.3千</title></circle>
+<circle class="data-point" cx="620.0" cy="61.5" r="3" fill="#ef4444" opacity="0.8"><title>03-16
+高风险UV(人): 7.0千</title></circle>
+<circle class="data-point" cx="730.0" cy="61.8" r="3" fill="#ef4444" opacity="0.8"><title>03-17
+高风险UV(人): 7.0千</title></circle>
+<text x="735" y="133.0" font-size="9" fill="#7c3aed" text-anchor="start">0</text>
+<text x="735" y="110.5" font-size="9" fill="#7c3aed" text-anchor="start">691</text>
+<text x="735" y="88.0" font-size="9" fill="#7c3aed" text-anchor="start">1.4千</text>
+<text x="735" y="65.5" font-size="9" fill="#7c3aed" text-anchor="start">2.1千</text>
+<text x="735" y="43.0" font-size="9" fill="#7c3aed" text-anchor="start">2.8千</text>
+<polyline points="70.0,40.0 180.0,51.0 290.0,50.8 400.0,54.0 510.0,94.6 620.0,96.6 730.0,99.7" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="4,2"/>
+<circle class="data-point" cx="70.0" cy="40.0" r="3" fill="#7c3aed" opacity="0.8"><title>03-11
+黑产设备(人): 2.8千</title></circle>
+<circle class="data-point" cx="180.0" cy="51.0" r="3" fill="#7c3aed" opacity="0.8"><title>03-12
+黑产设备(人): 2.4千</title></circle>
+<circle class="data-point" cx="290.0" cy="50.8" r="3" fill="#7c3aed" opacity="0.8"><title>03-13
+黑产设备(人): 2.4千</title></circle>
+<circle class="data-point" cx="400.0" cy="54.0" r="3" fill="#7c3aed" opacity="0.8"><title>03-14
+黑产设备(人): 2.3千</title></circle>
+<circle class="data-point" cx="510.0" cy="94.6" r="3" fill="#7c3aed" opacity="0.8"><title>03-15
+黑产设备(人): 1.1千</title></circle>
+<circle class="data-point" cx="620.0" cy="96.6" r="3" fill="#7c3aed" opacity="0.8"><title>03-16
+黑产设备(人): 1.0千</title></circle>
+<circle class="data-point" cx="730.0" cy="99.7" r="3" fill="#7c3aed" opacity="0.8"><title>03-17
+黑产设备(人): 931</title></circle>
+</svg>
+</div>
+    <div class="summary risk">→ 高风险UV占比稳定在0.3%~0.38%范围内。3/12出现峰值9255人（↑34.1%），随后逐步回落。UV贡献TOP5: 增长-金币节活动(39.9%)、网赚-金币兑换(24.9%)、网赚-日常签到(27.1%)、歌房-房间任务(19.2%)、歌房小镇(16.0%)。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">高风险发放数量趋势(万笔)</text>
+<line x1="720" y1="14" x2="732" y2="14" stroke="#f59e0b" stroke-width="2"/>
+<text x="735" y="18" font-size="10" fill="#64748b">高风险数量(万笔)</text>
+<line x1="70" y1="40" x2="70" y2="130" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70" y1="130" x2="750" y2="130" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="183.33333333333331" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="296.66666666666663" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="410.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="523.3333333333333" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="636.6666666666667" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="750.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<line x1="70" y1="130.0" x2="750" y2="130.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="133.0" font-size="9" fill="#94a3b8" text-anchor="end">0</text>
+<line x1="70" y1="107.5" x2="750" y2="107.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="110.5" font-size="9" fill="#94a3b8" text-anchor="end">6.3千</text>
+<line x1="70" y1="85.0" x2="750" y2="85.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="88.0" font-size="9" fill="#94a3b8" text-anchor="end">1.3万</text>
+<line x1="70" y1="62.5" x2="750" y2="62.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="65.5" font-size="9" fill="#94a3b8" text-anchor="end">1.9万</text>
+<line x1="70" y1="40.0" x2="750" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">2.5万</text>
+<polyline points="70.0,88.1 183.3,72.0 296.7,81.6 410.0,77.6 523.3,79.4 636.7,60.8 750.0,40.0" fill="none" stroke="#f59e0b" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="88.1" r="3" fill="#f59e0b" opacity="0.8"><title>03-11
+高风险数量(万笔): 1.2万</title></circle>
+<circle class="data-point" cx="183.3" cy="72.0" r="3" fill="#f59e0b" opacity="0.8"><title>03-12
+高风险数量(万笔): 1.6万</title></circle>
+<circle class="data-point" cx="296.7" cy="81.6" r="3" fill="#f59e0b" opacity="0.8"><title>03-13
+高风险数量(万笔): 1.4万</title></circle>
+<circle class="data-point" cx="410.0" cy="77.6" r="3" fill="#f59e0b" opacity="0.8"><title>03-14
+高风险数量(万笔): 1.5万</title></circle>
+<circle class="data-point" cx="523.3" cy="79.4" r="3" fill="#f59e0b" opacity="0.8"><title>03-15
+高风险数量(万笔): 1.4万</title></circle>
+<circle class="data-point" cx="636.7" cy="60.8" r="3" fill="#f59e0b" opacity="0.8"><title>03-16
+高风险数量(万笔): 1.9万</title></circle>
+<circle class="data-point" cx="750.0" cy="40.0" r="3" fill="#f59e0b" opacity="0.8"><title>03-17
+高风险数量(万笔): 2.5万</title></circle>
+</svg>
+</div>
+    <div class="summary warn">📌 高风险发放数量占总发放0.3008%，3/17出现高风险发放数量激增至2.5亿笔，需关注。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="70" y="16" font-size="13" font-weight="bold" fill="#1e293b">高风险金额趋势</text>
+<line x1="720" y1="14" x2="732" y2="14" stroke="#ef4444" stroke-width="2"/>
+<text x="735" y="18" font-size="10" fill="#64748b">高风险金额(元)</text>
+<line x1="70" y1="130.0" x2="750" y2="130.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="133.0" font-size="9" fill="#94a3b8" text-anchor="end">¥0</text>
+<line x1="70" y1="107.5" x2="750" y2="107.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="110.5" font-size="9" fill="#94a3b8" text-anchor="end">¥2405</text>
+<line x1="70" y1="85.0" x2="750" y2="85.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="88.0" font-size="9" fill="#94a3b8" text-anchor="end">¥4810</text>
+<line x1="70" y1="62.5" x2="750" y2="62.5" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="65.5" font-size="9" fill="#94a3b8" text-anchor="end">¥7215</text>
+<line x1="70" y1="40.0" x2="750" y2="40.0" stroke="#f1f5f9" stroke-width="1"/>
+<text x="65" y="43.0" font-size="9" fill="#94a3b8" text-anchor="end">¥9620</text>
+<text x="70.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-11</text>
+<text x="183.33333333333331" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-12</text>
+<text x="296.66666666666663" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-13</text>
+<text x="410.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-14</text>
+<text x="523.3333333333333" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-15</text>
+<text x="636.6666666666667" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-16</text>
+<text x="750.0" y="145" font-size="10" fill="#94a3b8" text-anchor="middle">03-17</text>
+<polygon points="70.0,83.0 183.3,68.0 296.7,65.7 410.0,40.0 523.3,58.4 636.7,67.8 750.0,74.3 750.0,130.0 70.0,130.0" fill="#ef4444" fill-opacity="0.15"/>
+<polyline points="70.0,83.0 183.3,68.0 296.7,65.7 410.0,40.0 523.3,58.4 636.7,67.8 750.0,74.3" fill="none" stroke="#ef4444" stroke-width="2"/>
+<circle class="data-point" cx="70.0" cy="83.0" r="3" fill="#ef4444" opacity="0.8"><title>03-11
+高风险金额(元): ¥5019</title></circle>
+<circle class="data-point" cx="183.3" cy="68.0" r="3" fill="#ef4444" opacity="0.8"><title>03-12
+高风险金额(元): ¥6629</title></circle>
+<circle class="data-point" cx="296.7" cy="65.7" r="3" fill="#ef4444" opacity="0.8"><title>03-13
+高风险金额(元): ¥6869</title></circle>
+<circle class="data-point" cx="410.0" cy="40.0" r="3" fill="#ef4444" opacity="0.8"><title>03-14
+高风险金额(元): ¥9620</title></circle>
+<circle class="data-point" cx="523.3" cy="58.4" r="3" fill="#ef4444" opacity="0.8"><title>03-15
+高风险金额(元): ¥7650</title></circle>
+<circle class="data-point" cx="636.7" cy="67.8" r="3" fill="#ef4444" opacity="0.8"><title>03-16
+高风险金额(元): ¥6648</title></circle>
+<circle class="data-point" cx="750.0" cy="74.3" r="3" fill="#ef4444" opacity="0.8"><title>03-17
+高风险金额(元): ¥5951</title></circle>
+</svg>
+</div>
+    <div class="summary risk">📌 高风险金额¥4.8万，占总金额0.13%。金额TOP: TMEPAY自建支付(¥33345)、网赚-金币兑换(¥2088)、网赚-下载专区(¥1585)、增长-换量(¥1326)、砸蛋比大小(¥1010)。</div>
+    
+    <div class="chart-container"><svg width="100%" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="80" y="18" font-size="13" font-weight="bold" fill="#1e293b">风险等级 × 设备等级 交叉分布</text>
+<text x="80" y="35" font-size="10" fill="#94a3b8">X轴=风险等级 Y轴=设备等级 颜色深浅=用户数</text>
+<text x="130.0" y="45" font-size="10" fill="#64748b" text-anchor="middle">R0</text>
+<text x="230.0" y="45" font-size="10" fill="#64748b" text-anchor="middle">R1</text>
+<text x="330.0" y="45" font-size="10" fill="#64748b" text-anchor="middle">R2</text>
+<text x="430.0" y="45" font-size="10" fill="#64748b" text-anchor="middle">R3</text>
+<text x="530.0" y="45" font-size="10" fill="#64748b" text-anchor="middle">R4</text>
+<text x="75" y="79.0" font-size="10" fill="#64748b" text-anchor="end">正常</text>
+<text x="75" y="129.0" font-size="10" fill="#64748b" text-anchor="end">可疑</text>
+<text x="75" y="179.0" font-size="10" fill="#64748b" text-anchor="end">高危</text>
+<text x="75" y="229.0" font-size="10" fill="#64748b" text-anchor="end">黑产</text>
+<rect x="81.0" y="51.0" width="98.0" height="48.0" rx="4" fill="rgba(59,130,246,0.90)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="130.0" y="69.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">422.9万人</text>
+<text x="130.0" y="81.0" font-size="8" fill="#64748b" text-anchor="middle">¥1654.5万</text>
+<text x="130.0" y="91.0" font-size="8" fill="#94a3b8" text-anchor="middle">1603.5亿笔</text>
+<rect x="81.0" y="101.0" width="98.0" height="48.0" rx="4" fill="rgba(245,158,11,0.59)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="130.0" y="119.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">2.1万人</text>
+<text x="130.0" y="131.0" font-size="8" fill="#64748b" text-anchor="middle">¥20.2万</text>
+<text x="130.0" y="141.0" font-size="8" fill="#94a3b8" text-anchor="middle">21.0亿笔</text>
+<rect x="81.0" y="151.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.46)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="130.0" y="169.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">2.6千人</text>
+<text x="130.0" y="181.0" font-size="8" fill="#64748b" text-anchor="middle">¥4.5万</text>
+<text x="130.0" y="191.0" font-size="8" fill="#94a3b8" text-anchor="middle">9.2亿笔</text>
+<rect x="81.0" y="201.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.30)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="130.0" y="219.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">156人</text>
+<text x="130.0" y="231.0" font-size="8" fill="#64748b" text-anchor="middle">¥6067</text>
+<text x="130.0" y="241.0" font-size="8" fill="#94a3b8" text-anchor="middle">122.4万笔</text>
+<rect x="181.0" y="51.0" width="98.0" height="48.0" rx="4" fill="rgba(59,130,246,0.85)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="230.0" y="69.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">180.5万人</text>
+<text x="230.0" y="81.0" font-size="8" fill="#64748b" text-anchor="middle">¥1960.9万</text>
+<text x="230.0" y="91.0" font-size="8" fill="#94a3b8" text-anchor="middle">2133.0亿笔</text>
+<rect x="181.0" y="101.0" width="98.0" height="48.0" rx="4" fill="rgba(245,158,11,0.57)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="230.0" y="119.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">1.5万人</text>
+<text x="230.0" y="131.0" font-size="8" fill="#64748b" text-anchor="middle">¥30.6万</text>
+<text x="230.0" y="141.0" font-size="8" fill="#94a3b8" text-anchor="middle">28.8亿笔</text>
+<rect x="181.0" y="151.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.42)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="230.0" y="169.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">1.3千人</text>
+<text x="230.0" y="181.0" font-size="8" fill="#64748b" text-anchor="middle">¥1.7万</text>
+<text x="230.0" y="191.0" font-size="8" fill="#94a3b8" text-anchor="middle">2.5亿笔</text>
+<rect x="181.0" y="201.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.24)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="230.0" y="219.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">62人</text>
+<text x="230.0" y="231.0" font-size="8" fill="#64748b" text-anchor="middle">¥1185</text>
+<text x="230.0" y="241.0" font-size="8" fill="#94a3b8" text-anchor="middle">73.9万笔</text>
+<rect x="281.0" y="51.0" width="98.0" height="48.0" rx="4" fill="rgba(245,158,11,0.55)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="330.0" y="69.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">1.1万人</text>
+<text x="330.0" y="81.0" font-size="8" fill="#64748b" text-anchor="middle">¥21.8万</text>
+<text x="330.0" y="91.0" font-size="8" fill="#94a3b8" text-anchor="middle">16.1亿笔</text>
+<rect x="281.0" y="101.0" width="98.0" height="48.0" rx="4" fill="rgba(245,158,11,0.29)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="330.0" y="119.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">141人</text>
+<text x="330.0" y="131.0" font-size="8" fill="#64748b" text-anchor="middle">¥3118</text>
+<text x="330.0" y="141.0" font-size="8" fill="#94a3b8" text-anchor="middle">2876.8万笔</text>
+<rect x="281.0" y="151.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.19)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="330.0" y="169.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">24人</text>
+<text x="330.0" y="181.0" font-size="8" fill="#64748b" text-anchor="middle">¥1745</text>
+<text x="330.0" y="191.0" font-size="8" fill="#94a3b8" text-anchor="middle">434.2万笔</text>
+<rect x="281.0" y="201.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.08)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="330.0" y="219.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">3人</text>
+<text x="330.0" y="231.0" font-size="8" fill="#64748b" text-anchor="middle">¥0</text>
+<text x="330.0" y="241.0" font-size="8" fill="#94a3b8" text-anchor="middle">7.1万笔</text>
+<rect x="381.0" y="51.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.52)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="430.0" y="69.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">7.3千人</text>
+<text x="430.0" y="81.0" font-size="8" fill="#64748b" text-anchor="middle">¥2.5万</text>
+<text x="430.0" y="91.0" font-size="8" fill="#94a3b8" text-anchor="middle">3.2亿笔</text>
+<rect x="381.0" y="101.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.32)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="430.0" y="119.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">245人</text>
+<text x="430.0" y="131.0" font-size="8" fill="#64748b" text-anchor="middle">¥274</text>
+<text x="430.0" y="141.0" font-size="8" fill="#94a3b8" text-anchor="middle">1395.3万笔</text>
+<rect x="381.0" y="151.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.23)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="430.0" y="169.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">50人</text>
+<text x="430.0" y="181.0" font-size="8" fill="#64748b" text-anchor="middle">¥98</text>
+<text x="430.0" y="191.0" font-size="8" fill="#94a3b8" text-anchor="middle">1164.6万笔</text>
+<rect x="381.0" y="201.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.47)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="430.0" y="219.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">2.7千人</text>
+<text x="430.0" y="231.0" font-size="8" fill="#64748b" text-anchor="middle">¥17</text>
+<text x="430.0" y="241.0" font-size="8" fill="#94a3b8" text-anchor="middle">1.1亿笔</text>
+<rect x="481.0" y="51.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.52)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="530.0" y="69.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">7.0千人</text>
+<text x="530.0" y="81.0" font-size="8" fill="#64748b" text-anchor="middle">¥2.2万</text>
+<text x="530.0" y="91.0" font-size="8" fill="#94a3b8" text-anchor="middle">5.5亿笔</text>
+<rect x="481.0" y="101.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.28)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="530.0" y="119.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">105人</text>
+<text x="530.0" y="131.0" font-size="8" fill="#64748b" text-anchor="middle">¥152</text>
+<text x="530.0" y="141.0" font-size="8" fill="#94a3b8" text-anchor="middle">6328.3万笔</text>
+<rect x="481.0" y="151.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.35)" stroke="#e2e8f0" stroke-width="0.5"/>
+<text x="530.0" y="169.0" font-size="9" fill="#1e293b" text-anchor="middle" font-weight="bold">383人</text>
+<text x="530.0" y="181.0" font-size="8" fill="#64748b" text-anchor="middle">¥1088</text>
+<text x="530.0" y="191.0" font-size="8" fill="#94a3b8" text-anchor="middle">7559.7万笔</text>
+<rect x="481.0" y="201.0" width="98.0" height="48.0" rx="4" fill="rgba(239,68,68,0.05)" stroke="#e2e8f0" stroke-width="0.5"/>
+</svg>
+</div>
+    
+    <div class="risk-split">
+        <div class="risk-split-card">
+            <h4>💰 有价值发放（涉及资金损失）</h4>
+            <div class="val" style="color:#ef4444">¥4.8万</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px">高风险用户1.8万人 · 占总金额0.13%</div>
+        </div>
+        <div class="risk-split-card">
+            <h4>🎁 无价值发放（装饰/称号/道具）</h4>
+            <div class="val" style="color:#f59e0b">8.2亿笔</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px">高风险占无价值总发放0.36%</div>
+        </div>
+    </div>
+</div>
+
+<!-- S4: Cross-activity -->
+<div class="section">
+    <h2>🕸️ S4 · 跨活动黑产网络</h2>
+    <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="kpi-card risk"><div class="kpi-label">跨活动黑产用户</div><div class="kpi-value" style="color:#7c3aed">≥30人</div></div>
+        <div class="kpi-card risk"><div class="kpi-label">涉及活动数</div><div class="kpi-value" style="color:#7c3aed">262个</div></div>
+        <div class="kpi-card risk"><div class="kpi-label">合计薅取金额</div><div class="kpi-value" style="color:#ef4444">¥14300</div></div>
+        <div class="kpi-card risk"><div class="kpi-label">TOP1用户涉及</div><div class="kpi-value" style="color:#ef4444">9个活动</div></div>
+    </div>
+    <div class="summary risk">🚨 10个高风险用户同时出现在≥2个活动中，呈组织化黑产特征。TOP1用户(UID:429847041)涉及9个活动，薅取¥3195.71。高频被薅活动主要为TMEPAY自建支付、网赚-金币兑换等核心活动。</div>
+    <table><thead><tr><th>UID</th><th>涉及活动数</th><th>涉及活动</th><th>风险等级</th><th>设备等级</th><th>薅取金额</th></tr></thead><tbody>
+<tr><td>429847041</td><td>9</td><td>网赚-金币兑换、TMEPAY自建支付、直播-大R专项 等9个</td><td>R4</td><td>S0</td><td>¥3195.71</td></tr>
+<tr><td>1394243687</td><td>7</td><td>网赚-金币兑换、网赚-日常签到、TMEPAY自建支付 等7个</td><td>R4</td><td>S0</td><td>¥2143.96</td></tr>
+<tr><td>1318030069</td><td>10</td><td>直播神秘商店、异步创作者榜单赛、TMEPAY自建支付 等10个</td><td>R3</td><td>S0</td><td>¥1769.00</td></tr>
+<tr><td>1326937510</td><td>7</td><td>异步创作者榜单赛、网赚-日常签到、TMEPAY自建支付 等7个</td><td>R3</td><td>S0</td><td>¥1140.01</td></tr>
+<tr><td>1091311319</td><td>33</td><td>直播神秘商店、萌宠觅食、直播粉丝团奖励 等33个</td><td>R4</td><td>S0</td><td>¥1107.13</td></tr>
+<tr><td>1395807796</td><td>7</td><td>网赚-金币兑换、网赚-日常签到、TMEPAY自建支付 等7个</td><td>R3</td><td>S2</td><td>¥1031.14</td></tr>
+<tr><td>844930000</td><td>34</td><td>萌宠觅食、网赚-金币兑换、网赚-财富榜 等34个</td><td>R4</td><td>S0</td><td>¥1017.24</td></tr>
+<tr><td>1331035382</td><td>19</td><td>歌房-房间任务、网赚-金币兑换、网赚-财富榜 等19个</td><td>R3</td><td>S0</td><td>¥986.39</td></tr>
+<tr><td>1395961203</td><td>25</td><td>直播神秘商店、萌宠觅食、直播粉丝团奖励 等25个</td><td>R3</td><td>S0</td><td>¥985.46</td></tr>
+<tr><td>858184820</td><td>33</td><td>萌宠觅食、歌房-房间任务、歌房-战令 等33个</td><td>R4</td><td>S0</td><td>¥924.42</td></tr>
+</tbody></table>
+
+</div>
+
+<!-- S5: Risk Activity Ranking -->
+<div class="section">
+    <h2>📋 S5 · 风险活动排行 TOP15</h2>
+    <div class="chart-container"><svg width="100%" viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,-apple-system,sans-serif;">
+<text x="200" y="18" font-size="13" font-weight="bold" fill="#1e293b">风险金额 TOP10 活动</text>
+<text x="195" y="48.75" font-size="11" fill="#475569" text-anchor="end">TMEPAY自建支付</text>
+<rect x="200" y="35.0" width="440.0" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="645.0" y="48.75" font-size="10" fill="#64748b">¥3.3万 占比0.18%</text>
+<text x="195" y="74.25" font-size="11" fill="#475569" text-anchor="end">网赚-金币兑换</text>
+<rect x="200" y="60.5" width="27.6" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="232.55466252406686" y="74.25" font-size="10" fill="#64748b">¥2088 占比0.16%</text>
+<text x="195" y="99.75" font-size="11" fill="#475569" text-anchor="end">网赚-下载专区</text>
+<rect x="200" y="86.0" width="20.9" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="225.91981310317112" y="99.75" font-size="10" fill="#64748b">¥1585 占比0.48%</text>
+<text x="195" y="125.25" font-size="11" fill="#475569" text-anchor="end">增长-换量</text>
+<rect x="200" y="111.5" width="17.5" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="222.50243217792388" y="125.25" font-size="10" fill="#64748b">¥1326 占比0.33%</text>
+<text x="195" y="150.75" font-size="11" fill="#475569" text-anchor="end">砸蛋比大小</text>
+<rect x="200" y="137.0" width="13.3" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="218.32749530658637" y="150.75" font-size="10" fill="#64748b">¥1010 占比0.18%</text>
+<text x="195" y="176.25" font-size="11" fill="#475569" text-anchor="end">网赚-看广告得K币礼物</text>
+<rect x="200" y="162.5" width="13.1" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="218.07176574317882" y="176.25" font-size="10" fill="#64748b">¥991 占比0.14%</text>
+<text x="195" y="201.75" font-size="11" fill="#475569" text-anchor="end">增长-金币节活动</text>
+<rect x="200" y="188.0" width="12.8" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="217.84176748259088" y="201.75" font-size="10" fill="#64748b">¥973 占比0.8%</text>
+<text x="195" y="227.25" font-size="11" fill="#475569" text-anchor="end">免模激励物</text>
+<rect x="200" y="213.5" width="11.4" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="216.42522627351954" y="227.25" font-size="10" fill="#64748b">¥866 占比0.31%</text>
+<text x="195" y="252.75" font-size="11" fill="#475569" text-anchor="end">网赚-游戏中心</text>
+<rect x="200" y="239.0" width="11.0" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="215.97618205046695" y="252.75" font-size="10" fill="#64748b">¥832 占比0.58%</text>
+<text x="195" y="278.25" font-size="11" fill="#475569" text-anchor="end">热度卡卡包</text>
+<rect x="200" y="264.5" width="8.4" height="19.5" rx="3" fill="#22c55e" fill-opacity="0.8"/>
+<text x="213.4451455408072" y="278.25" font-size="10" fill="#64748b">¥640 占比0.54%</text>
+</svg>
+</div>
+    <div class="summary risk">📌 风险金额最高的活动为TMEPAY自建支付(¥33,344.6)，占全平台风险金额68.9%。歌房小镇(1000168)高风险UV占比异常高达5.71%，黑产设备用户2740人。</div>
+    <table><thead><tr><th>活动名称</th><th>高风险UV</th><th>占比</th><th>黑产设备</th><th>风险金额</th><th>风险发放数量</th></tr></thead><tbody>
+<tr><td>TMEPAY自建支付</td><td>465</td><td>0.18%</td><td>16</td><td>¥33344.60</td><td>33.3万</td></tr>
+<tr><td>网赚-金币兑换</td><td>4380</td><td>0.16%</td><td>25</td><td>¥2088.18</td><td>1412.3万</td></tr>
+<tr><td>网赚-下载专区</td><td>840</td><td class="warn">0.48%</td><td>1</td><td>¥1585.37</td><td>7926.8万</td></tr>
+<tr><td>增长-换量</td><td>1108</td><td class="warn">0.33%</td><td>2</td><td>¥1326.39</td><td>7149.4万</td></tr>
+<tr><td>砸蛋比大小</td><td>5</td><td>0.18%</td><td>0</td><td>¥1010.00</td><td>101</td></tr>
+<tr><td>网赚-看广告得K币礼物</td><td>1215</td><td>0.14%</td><td>19</td><td>¥990.62</td><td>986.4万</td></tr>
+<tr><td>增长-金币节活动</td><td>7021</td><td class="warn">0.8%</td><td>2</td><td>¥973.19</td><td>1.3亿</td></tr>
+<tr><td>免模激励物</td><td>403</td><td class="warn">0.31%</td><td>2</td><td>¥865.84</td><td>3555.3万</td></tr>
+<tr><td>网赚-游戏中心</td><td>674</td><td class="warn">0.58%</td><td>0</td><td>¥831.81</td><td>4089.0万</td></tr>
+<tr><td>热度卡卡包</td><td>1</td><td class="warn">0.54%</td><td>0</td><td>¥640.00</td><td>64</td></tr>
+<tr><td>飞机跳伞玩法</td><td>15</td><td>0.24%</td><td>1</td><td>¥567.00</td><td>880</td></tr>
+<tr><td>网赚-摇钱树</td><td>600</td><td>0.22%</td><td>1</td><td>¥554.80</td><td>664.3万</td></tr>
+<tr><td>直播神秘商店</td><td>8</td><td>0.19%</td><td>0</td><td>¥551.90</td><td>1.2万</td></tr>
+<tr><td>萌宠觅食</td><td>16</td><td>0.29%</td><td>2</td><td>¥543.00</td><td>4.3千</td></tr>
+<tr><td>歌房小镇</td><td>2811</td><td class="danger">5.71%</td><td>2740</td><td>¥0.00</td><td>1.1亿</td></tr>
+</tbody></table>
+
+</div>
+
+<!-- S6: Assessment -->
+<div class="section">
+    <h2>🎯 S6 · 综合评估与建议</h2>
+    <div style="text-align:center;padding:16px;background:#fef2f2;border-radius:8px;margin-bottom:14px;">
+        <div style="font-size:28px;margin-bottom:6px;">🔴 风险</div>
+        <div style="font-size:13px;color:#475569;">K歌平台本周检测到黑产设备用户2949人及大量跨活动高风险用户，整体评级为<b style="color:#ef4444">风险</b>。但高风险金额占比仅0.13%，资金风险可控。</div>
+    </div>
+    <div class="issue-card" style="border-left:4px solid #ef4444">
+    <div class="issue-header"><span class="issue-level" style="background:#ef4444;color:white">🚨 P0</span> <b>存在确认黑产设备用户</b></div>
+    <div class="issue-desc">检测到 2949 个黑产设备用户，集中在歌房小镇(2740人)、歌房-房间任务(2556人)等活动，建议立即封禁处理。</div>
+</div>
+<div class="issue-card" style="border-left:4px solid #ef4444">
+    <div class="issue-header"><span class="issue-level" style="background:#ef4444;color:white">🚨 P0</span> <b>大量跨活动高风险用户</b></div>
+    <div class="issue-desc">≥30个高风险用户同时出现在2个以上活动中，TOP1用户涉及9个活动薅取¥3195.71，呈组织化黑产特征。</div>
+</div>
+<div class="issue-card" style="border-left:4px solid #f59e0b">
+    <div class="issue-header"><span class="issue-level" style="background:#f59e0b;color:white">⚠️ P1</span> <b>歌房小镇高风险UV占比异常</b></div>
+    <div class="issue-desc">歌房小镇(1000168)高风险UV占比高达5.71%，其中黑产设备用户2740人，风险发放1.1亿笔，建议重点排查。</div>
+</div>
+<div class="issue-card" style="border-left:4px solid #f59e0b">
+    <div class="issue-header"><span class="issue-level" style="background:#f59e0b;color:white">⚠️ P1</span> <b>增长-金币节高风险UV集中</b></div>
+    <div class="issue-desc">增长-金币节活动(1000236)高风险UV达7021人，占该活动总UV的0.8%，风险发放1.3亿笔，需关注金币薅取行为。</div>
+</div>
+<div class="issue-card" style="border-left:4px solid #3b82f6">
+    <div class="issue-header"><span class="issue-level" style="background:#3b82f6;color:white">ℹ️ P2</span> <b>TMEPAY自建支付风险金额最高</b></div>
+    <div class="issue-desc">TMEPAY自建支付活动风险金额¥33,344.6，占全平台风险金额68.9%，建议加强支付场景风控策略。</div>
+</div>
+
+</div>
+
+<div class="footer">
+    数据来源: 福利发放记录 + 活动投入产出流水 + 风险用户数据<br>
+    生成时间: 2026-03-18 10:06 · 生成工具: Claude Code — platform-report skill
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现代代理协议交互式指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Arctic Code (based on Slate and Sky from Tailwind) -->
+    <!-- Application Structure Plan: The SPA is structured into four main, easily navigable sections: an introduction to proxy concepts, a deep-dive into individual protocols, a comparative analysis with interactive charts, and scenario-based recommendations. This non-linear structure was chosen over the report's linear format to empower users, especially tech novices, to either follow a guided learning path or jump directly to topics of interest. Key interactions include tabbed navigation for protocols, hover-to-learn packet diagrams, and a filterable comparison chart. This design transforms a static document into a dynamic educational tool, enhancing usability and comprehension. -->
+    <!-- Visualization & Content Choices: 
+        - Protocol Formats: The report's ASCII diagrams are transformed into styled HTML `div`s. Goal: Clarify complex packet structures. Viz/Method: Flexbox-based visual blocks. Interaction: Hover effects to reveal field descriptions. Justification: This is more intuitive and less intimidating than raw text diagrams for a non-technical audience.
+        - Protocol Comparison: The report's static table is augmented with an interactive bar chart. Goal: Provide quick, high-level comparisons. Viz/Method: Chart.js for the bar chart; styled HTML for the detailed table. Interaction: Buttons to switch the metric displayed on the chart. Justification: The chart offers an immediate visual summary of key differences, while the table provides detailed data for deeper analysis.
+        - Overall Navigation: The report's linear chapter structure is converted into a tab-based, single-page application flow. Goal: Enable easy and random access to information. Viz/Method: A sticky header with navigation links that control content visibility via JavaScript. Justification: This is a standard and highly usable pattern for web applications, offering a superior user experience to scrolling through a long document.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .packet-diagram {
+            display: flex;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            text-align: center;
+            overflow-x: auto;
+            background-color: #f8fafc;
+        }
+        .packet-field {
+            padding: 0.75rem 0.5rem;
+            border-right: 1px solid #e2e8f0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .packet-field:last-child {
+            border-right: none;
+        }
+        .packet-field:hover {
+            background-color: #e0f2fe;
+        }
+        .field-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .field-size {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        [data-section] { display: none; }
+        [data-section].active { display: block; }
+        [data-protocol-content] { display: none; }
+        [data-protocol-content].active { display: block; }
+        .nav-link.active {
+             color: #0ea5e9;
+             border-bottom-color: #0ea5e9;
+        }
+        .protocol-tab.active {
+            background-color: #0ea5e9;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header id="header" class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-900">现代代理协议指南</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" data-nav="intro" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 hover:text-sky-500 border-b-2 border-transparent transition-colors duration-200">基础介绍</a>
+                        <a href="#protocols" data-nav="protocols" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 hover:text-sky-500 border-b-2 border-transparent transition-colors duration-200">协议详解</a>
+                        <a href="#comparison" data-nav="comparison" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 hover:text-sky-500 border-b-2 border-transparent transition-colors duration-200">横向对比</a>
+                        <a href="#recommendations" data-nav="recommendations" class="nav-link px-3 py-2 text-sm font-medium text-slate-600 hover:text-sky-500 border-b-2 border-transparent transition-colors duration-200">场景推荐</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <select id="mobile-nav" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm">
+                        <option value="intro">基础介绍</option>
+                        <option value="protocols">协议详解</option>
+                        <option value="comparison">横向对比</option>
+                        <option value="recommendations">场景推荐</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Section: Introduction -->
+        <section id="intro" data-section="intro">
+            <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 border-l-4 border-sky-500 pl-4">网络代理的基础</h2>
+                <div class="space-y-6 text-slate-700 leading-relaxed">
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-800 mt-6 mb-3">理解数字世界中的“中间人”</h3>
+                        <p>在深入探讨各种复杂的代理协议之前，我们必须首先理解一个核心概念：什么是代理服务器。您可以将代理服务器想象成一个为您处理信件的私人邮件转寄服务。在网络世界中，代理服务器是一台充当您与您访问的网站之间的“中间人”或网关的计算机。当您想访问一个网站时，您的请求不会直接发送到目标网站，而是首先发送到代理服务器。然后，代理服务器会代表您向目标网站发出请求，接收网站的响应，最后再将响应转发给您。这个过程对您来说通常是无缝的。</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-800 mt-6 mb-3">正向代理与反向代理的区别</h3>
+                        <p>对于初学者来说，一个常见的混淆点是“正向代理”和“反向代理”。本指南将重点关注正向代理，但理解二者的区别至关重要。</p>
+                        <ul class="list-disc list-inside mt-2 space-y-2 pl-4">
+                            <li><strong class="text-slate-800">正向代理 (Forward Proxy)：</strong>由客户端（即您的计算机）使用的代理，用于访问互联网。它的主要作用是代表客户端与服务器通信，从而对目标服务器隐藏客户端的真实身份。我们接下来要讨论的所有协议，都属于正向代理的范畴。</li>
+                            <li><strong class="text-slate-800">反向代理 (Reverse Proxy)：</strong>由服务器端使用的代理，用于处理来自客户端的传入请求。它对客户端隐藏了后端服务器集群的真实结构和IP地址。常见用途包括负载均衡、提高安全性等。</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-slate-800 mt-6 mb-3">从“代理”到“伪装”：一场持续的攻防博弈</h3>
+                        <p>理解本报告中各种协议的关键，在于认识到它们不仅仅是简单的“代理”，而是一场持续技术“军备竞赛”的产物。随着网络审查技术（如深度包检测DPI）的发展，现代代理协议的核心目标已经从简单的“中转”演变为复杂的“伪装”。它们的设计哲学不再是“我帮你访问网站”，而是“我要让审查者看不出我是在帮你访问网站”。这场攻防博弈推动了代理技术的不断演进：</p>
+                        <ol class="list-decimal list-inside mt-2 space-y-2 pl-4">
+                            <li><strong class="text-slate-800">基础代理：</strong>实现了流量中转，但特征明显，易于被识别。</li>
+                            <li><strong class="text-slate-800">加密混淆：</strong>以Shadowsocks为代表，将流量加密成看似无意义的随机数据。</li>
+                            <li><strong class="text-slate-800">主动探测防御：</strong>以Trojan和VLESS+TLS为代表的协议，通过完美模仿常见的HTTPS流量，抵御主动探测。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Protocols -->
+        <section id="protocols" data-section="protocols">
+            <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-6 border-l-4 border-sky-500 pl-4">协议深度解析</h2>
+                
+                <div class="border-b border-slate-200 mb-6">
+                    <nav class="-mb-px flex space-x-2 sm:space-x-4 overflow-x-auto" aria-label="Tabs">
+                        <button data-protocol-tab="socks5" class="protocol-tab whitespace-nowrap py-3 px-3 sm:px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors duration-200">SOCKS5</button>
+                        <button data-protocol-tab="shadowsocks" class="protocol-tab whitespace-nowrap py-3 px-3 sm:px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors duration-200">Shadowsocks</button>
+                        <button data-protocol-tab="vmess" class="protocol-tab whitespace-nowrap py-3 px-3 sm:px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors duration-200">VMess</button>
+                        <button data-protocol-tab="vless" class="protocol-tab whitespace-nowrap py-3 px-3 sm:px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors duration-200">VLESS</button>
+                        <button data-protocol-tab="trojan" class="protocol-tab whitespace-nowrap py-3 px-3 sm:px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors duration-200">Trojan</button>
+                        <button data-protocol-tab="hysteria" class="protocol-tab whitespace-nowrap py-3 px-3 sm:px-4 border-b-2 font-medium text-sm rounded-t-lg transition-colors duration-200">Hysteria</button>
+                    </nav>
+                </div>
+
+                <div class="prose max-w-none prose-slate">
+                    <!-- SOCKS5 Content -->
+                    <article data-protocol-content="socks5">
+                        <h3 class="text-2xl font-bold text-slate-800">SOCKS5 - 通用套接字的基石</h3>
+                        <p>SOCKS是一个底层代理协议，工作在会话层，能处理几乎所有基于TCP/UDP的流量。其通用性使其成为后续众多代理工具理想的构建基础。但它本身不提供流量加密，主要被用作现代代理客户端的标准化本地接口。</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">协议格式: 客户端连接请求</h4>
+                        <p>认证成功后，客户端发送代理请求，其格式定义非常清晰：</p>
+                        <div class="packet-diagram my-4">
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">VER</span><span class="field-size">(1)</span></div>
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">CMD</span><span class="field-size">(1)</span></div>
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">RSV</span><span class="field-size">(1)</span></div>
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">ATYP</span><span class="field-size">(1)</span></div>
+                            <div class="packet-field" style="min-width: 120px;"><span class="field-name">DST.ADDR</span><span class="field-size">(Variable)</span></div>
+                            <div class="packet-field" style="min-width: 90px;"><span class="field-name">DST.PORT</span><span class="field-size">(2)</span></div>
+                        </div>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            <li><b>VER:</b> 版本号, SOCKS5为 0x05</li>
+                            <li><b>CMD:</b> 命令, 0x01 = CONNECT (TCP)</li>
+                            <li><b>RSV:</b> 保留位, 必须为 0x00</li>
+                            <li><b>ATYP:</b> 地址类型, 0x01 = IPv4, 0x03 = 域名</li>
+                            <li><b>DST.ADDR:</b> 目标地址</li>
+                            <li><b>DST.PORT:</b> 目标端口</li>
+                        </ul>
+
+                        <div class="grid md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h5 class="font-bold text-green-800">核心优势</h5>
+                                <p class="text-sm text-green-700">通用性强，被广泛支持，是各种网络工具的理想底层框架。</p>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-bold text-red-800">核心劣势</h5>
+                                <p class="text-sm text-red-700">不提供任何内置加密，流量内容对中间人完全透明，存在巨大安全风险。</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Shadowsocks Content -->
+                    <article data-protocol-content="shadowsocks">
+                        <h3 class="text-2xl font-bold text-slate-800">Shadowsocks (SS) - 最初的伪装者</h3>
+                        <p>SS为对抗DPI而生，核心理念是简洁和高效。它将流量用预共享密钥加密，使其在被动监听者眼中与随机噪声无异，从而有效规避早期的流量特征检测。</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">协议格式: 加密TCP流</h4>
+                        <p>SS抛弃了繁琐握手，将目标地址和数据打包后一次性加密。以下是发送到远程服务器的数据流结构：</p>
+                        <div class="packet-diagram my-4">
+                            <div class="packet-field" style="min-width: 100px;"><span class="field-name">IV / Nonce</span><span class="field-size">(Optional)</span></div>
+                            <div class="packet-field" style="flex-grow: 1;"><span class="field-name">Encrypted( [Target Address] [Payload] )</span><span class="field-size">(Variable)</span></div>
+                        </div>
+                        <p class="text-sm">目标地址格式沿用SOCKS5的 <code>[1字节类型][可变长度主机][2字节端口]</code> 结构。</p>
+
+                        <div class="grid md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h5 class="font-bold text-green-800">核心优势</h5>
+                                <p class="text-sm text-green-700">协议开销极小，轻量快速，资源占用低。</p>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-bold text-red-800">核心劣势</h5>
+                                <p class="text-sm text-red-700">易受流量分析和主动探测攻击，在现代审查环境下可靠性低。</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- VMess Content -->
+                    <article data-protocol-content="vmess">
+                        <h3 class="text-2xl font-bold text-slate-800">VMess - 功能丰富的创新者</h3>
+                        <p>VMess追求功能全面、高度灵活，引入了基于时间的身份验证和非对称数据格式。它是一个复杂的多功能传输协议，提供了海量的配置选项。</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">协议格式: 客户端请求结构</h4>
+                        <p>VMess请求由三部分组成，层层加密，体现其深度防御思想。</p>
+                        <div class="space-y-4">
+                             <div class="packet-diagram">
+                                <div class="packet-field" style="width: 100%;"><span class="field-name">1. 认证信息 (HMAC-MD5(UserID, Timestamp))</span><span class="field-size">(16 bytes)</span></div>
+                            </div>
+                            <div class="text-2xl text-center font-bold text-slate-400">+</div>
+                             <div class="packet-diagram">
+                                <div class="packet-field" style="width: 100%;"><span class="field-name">2. 加密的指令部分 (Encrypted Command Section)</span><span class="field-size">(Variable)</span></div>
+                            </div>
+                             <div class="text-2xl text-center font-bold text-slate-400">+</div>
+                             <div class="packet-diagram">
+                                <div class="packet-field" style="width: 100%;"><span class="field-name">3. 加密的数据部分 (Encrypted Data Section)</span><span class="field-size">(Variable)</span></div>
+                            </div>
+                        </div>
+                        <p class="text-sm mt-4">指令部分包含了目标地址、端口以及用于加密数据部分的随机密钥等信息。</p>
+
+                        <div class="grid md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h5 class="font-bold text-green-800">核心优势</h5>
+                                <p class="text-sm text-green-700">极度灵活，支持多种传输载体和混淆设置，可定制性强。</p>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-bold text-red-800">核心劣势</h5>
+                                <p class="text-sm text-red-700">复杂导致性能开销高，且历史上存在被主动探测利用的漏洞。</p>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- VLESS Content -->
+                    <article data-protocol-content="vless">
+                        <h3 class="text-2xl font-bold text-slate-800">VLESS - 追求极致性能的简约派</h3>
+                        <p>VLESS的设计哲学与VMess相反，它追求极致的性能和简约。它将协议职责最小化，把加密工作完全委托给标准化的底层传输层（如TLS），实现了路由与安全的分离。</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">协议格式: 请求头</h4>
+                        <p>VLESS协议本身不加密，其请求头结构极其精简，在TLS隧道内传输。</p>
+                        <div class="packet-diagram my-4">
+                            <div class="packet-field" style="min-width: 80px;"><span class="field-name">Version</span><span class="field-size">(1)</span></div>
+                            <div class="packet-field" style="min-width: 120px;"><span class="field-name">UUID</span><span class="field-size">(16)</span></div>
+                            <div class="packet-field" style="min-width: 100px;"><span class="field-name">Additive</span><span class="field-size">(2, Opt)</span></div>
+                            <div class="packet-field" style="min-width: 80px;"><span class="field-name">Command</span><span class="field-size">(1)</span></div>
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">Port</span><span class="field-size">(2)</span></div>
+                            <div class="packet-field" style="min-width: 120px;"><span class="field-name">Address</span><span class="field-size">(Variable)</span></div>
+                        </div>
+                        <p class="text-sm mt-2">紧跟请求头之后的就是原始用户数据(Payload)。</p>
+
+                        <div class="grid md:grid-cols-2 gap-4 mt-6">
+                             <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h5 class="font-bold text-green-800">核心优势</h5>
+                                <p class="text-sm text-green-700">性能极高，开销小。依赖标准TLS，安全性强且伪装能力好。</p>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-bold text-red-800">核心劣势</h5>
+                                <p class="text-sm text-red-700">安全性完全依赖于外层传输（如TLS）的正确配置。</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Trojan Content -->
+                    <article data-protocol-content="trojan">
+                        <h3 class="text-2xl font-bold text-slate-800">Trojan - 模仿的艺术</h3>
+                        <p>Trojan采取了终极伪装策略：将代理服务器完美伪装成一个繁忙的HTTPS网站。它复用标准TLS握手，对无有效密码的探测者返回正常网页，实现“可信的否认性”。</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">协议格式: TLS隧道内第一个数据包</h4>
+                        <p>在TLS加密隧道建立后，客户端发送的第一个数据包包含“敲门暗号”和代理请求。</p>
+                        <div class="packet-diagram my-4">
+                            <div class="packet-field" style="min-width: 160px;"><span class="field-name">Hex(SHA224(password))</span><span class="field-size">(56)</span></div>
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">CRLF</span><span class="field-size">(2)</span></div>
+                            <div class="packet-field" style="min-width: 150px;"><span class="field-name">SOCKS5 Request</span><span class="field-size">(Variable)</span></div>
+                            <div class="packet-field" style="min-width: 60px;"><span class="field-name">CRLF</span><span class="field-size">(2)</span></div>
+                            <div class="packet-field" style="flex-grow: 1;"><span class="field-name">Payload</span><span class="field-size">(Variable)</span></div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h5 class="font-bold text-green-800">核心优势</h5>
+                                <p class="text-sm text-green-700">抗主动探测能力极强，无法与正常HTTPS网站区分。</p>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-bold text-red-800">核心劣势</h5>
+                                <p class="text-sm text-red-700">配置稍复杂，需要用户拥有一个注册域名和有效的TLS证书。</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Hysteria Content -->
+                    <article data-protocol-content="hysteria">
+                        <h3 class="text-2xl font-bold text-slate-800">Hysteria - 为不稳定网络而生的速度猛兽</h3>
+                        <p>Hysteria专为解决高延迟、高丢包网络下的传输问题而设计。它基于QUIC协议，使用激进的拥塞控制算法，旨在最大化网络吞吐量，实现“暴力加速”。</p>
+                        
+                        <h4 class="text-lg font-semibold mt-6 mb-3">协议格式: 伪装与认证</h4>
+                        <p>Hysteria 2将自身伪装成标准的HTTP/3流量。认证通过一个特殊的HTTP/3 <code>POST</code> 请求完成。</p>
+                        <div class="bg-slate-100 p-4 rounded-lg mt-2 text-sm text-slate-600">
+                            <p><b class="text-slate-800">认证流程:</b></p>
+                            <ol class="list-decimal list-inside ml-4 space-y-1 mt-2">
+                                <li>客户端与服务器建立标准QUIC连接。</li>
+                                <li>客户端向特定路径 (e.g., <code>/auth</code>) 发送一个 HTTP/3 <code>POST</code> 请求。</li>
+                                <li>请求的Header中包含密码等认证信息。</li>
+                                <li>服务器验证通过后，该QUIC连接转为代理通道。验证失败则返回正常HTTP/3响应。</li>
+                            </ol>
+                        </div>
+                        <p class="mt-4">认证成功后，代理数据被封装在QUIC的流或数据报中传输。</p>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 mt-6">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h5 class="font-bold text-green-800">核心优势</h5>
+                                <p class="text-sm text-green-700">在恶劣网络（高延迟/高丢包）下速度和稳定性无与伦比。</p>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-bold text-red-800">核心劣势</h5>
+                                <p class="text-sm text-red-700">适用场景特殊，在优质网络下无明显优势，且不适合代理QUIC流量。</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Comparison -->
+        <section id="comparison" data-section="comparison">
+             <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-6 border-l-4 border-sky-500 pl-4">协议横向对比</h2>
+                
+                <div class="text-center mb-6">
+                    <p class="text-slate-600 mb-3">点击按钮切换图表中的对比维度：</p>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <button data-metric="stealth" class="metric-btn bg-sky-500 text-white py-2 px-4 rounded-full text-sm font-semibold shadow-sm">抗探测能力</button>
+                        <button data-metric="performance" class="metric-btn bg-white text-slate-600 py-2 px-4 rounded-full text-sm font-semibold shadow-sm border border-slate-200">性能表现</button>
+                        <button data-metric="simplicity" class="metric-btn bg-white text-slate-600 py-2 px-4 rounded-full text-sm font-semibold shadow-sm border border-slate-200">配置简易度</button>
+                        <button data-metric="flexibility" class="metric-btn bg-white text-slate-600 py-2 px-4 rounded-full text-sm font-semibold shadow-sm border border-slate-200">功能灵活性</button>
+                    </div>
+                </div>
+
+                <div class="chart-container mb-12">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+
+                <h3 class="text-xl font-bold text-slate-800 mb-4">详细对比表</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-500">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 rounded-l-lg">特性</th>
+                                <th scope="col" class="px-6 py-3">SOCKS5</th>
+                                <th scope="col" class="px-6 py-3">Shadowsocks</th>
+                                <th scope="col" class="px-6 py-3">VMess</th>
+                                <th scope="col" class="px-6 py-3">VLESS</th>
+                                <th scope="col" class="px-6 py-3">Trojan</th>
+                                <th scope="col" class="px-6 py-3 rounded-r-lg">Hysteria</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white border-b">
+                                <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">核心设计目标</th>
+                                <td class="px-6 py-4">通用端口转发</td>
+                                <td class="px-6 py-4">简洁的加密规避</td>
+                                <td class="px-6 py-4">功能丰富的安全与灵活性</td>
+                                <td class="px-6 py-4">高性能与简约性</td>
+                                <td class="px-6 py-4">不可区分的模仿与伪装</td>
+                                <td class="px-6 py-4">不稳定网络下的最大吞吐量</td>
+                            </tr>
+                            <tr class="bg-slate-50 border-b">
+                                <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">抗探测能力</th>
+                                <td class="px-6 py-4">无</td>
+                                <td class="px-6 py-4">低</td>
+                                <td class="px-6 py-4">中</td>
+                                <td class="px-6 py-4">高</td>
+                                <td class="px-6 py-4">非常高</td>
+                                <td class="px-6 py-4">非常高</td>
+                            </tr>
+                            <tr class="bg-white border-b">
+                                <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">性能表现</th>
+                                <td class="px-6 py-4">高 (无加密)</td>
+                                <td class="px-6 py-4">快速</td>
+                                <td class="px-6 py-4">中等</td>
+                                <td class="px-6 py-4">非常快</td>
+                                <td class="px-6 py-4">快速</td>
+                                <td class="px-6 py-4">为高丢包/延迟网络优化</td>
+                            </tr>
+                             <tr class="bg-slate-50">
+                                <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">核心劣势</th>
+                                <td class="px-6 py-4">无加密，易封锁</td>
+                                <td class="px-6 py-4">易被现代防火墙检测</td>
+                                <td class="px-6 py-4">复杂，性能稍慢</td>
+                                <td class="px-6 py-4">安全依赖传输层配置</td>
+                                <td class="px-6 py-4">需域名和证书</td>
+                                <td class="px-6 py-4">适用场景特殊</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Recommendations -->
+        <section id="recommendations" data-section="recommendations">
+            <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-6 border-l-4 border-sky-500 pl-4">为您的需求选择正确的工具</h2>
+                <p class="text-slate-600 mb-8">没有“最好”的协议，只有“最适合”的协议。请根据您的具体需求和所面临的网络环境进行选择：</p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+                        <h3 class="font-bold text-lg text-slate-800">场景一：绕过简单的网络限制</h3>
+                        <p class="text-sm text-slate-500 mt-1">如公司、学校防火墙</p>
+                        <p class="mt-4 text-slate-600"><strong class="text-sky-600">推荐协议：Shadowsocks</strong></p>
+                        <p class="text-sm mt-2 text-slate-500">理由：在这种环境下，对手通常不是国家级的审查系统。Shadowsocks的简洁、轻量和低资源消耗使其成为一个完美的选择。</p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+                        <h3 class="font-bold text-lg text-slate-800">场景二：在优质网络下追求最高速度</h3>
+                        <p class="text-sm text-slate-500 mt-1">日常科学上网</p>
+                        <p class="mt-4 text-slate-600"><strong class="text-sky-600">推荐协议：VLESS (配合TLS/XTLS)</strong></p>
+                        <p class="text-sm mt-2 text-slate-500">理由：VLESS的设计就是为了性能。它自身开销极小，在网络状况良好的情况下，能提供顶级的速度和极低的延迟。</p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+                        <h3 class="font-bold text-lg text-slate-800">场景三：寻求最大程度的隐蔽性</h3>
+                        <p class="text-sm text-slate-500 mt-1">在审查极其严格的环境下</p>
+                        <p class="mt-4 text-slate-600"><strong class="text-sky-600">推荐协议：Trojan 或 VLESS+REALITY</strong></p>
+                        <p class="text-sm mt-2 text-slate-500">理由：生存是第一要务。Trojan通过完美模仿HTTPS服务器，提供了极高的抗主动探测能力。VLESS+REALITY也能达到类似效果。</p>
+                    </div>
+                    <div class="border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+                        <h3 class="font-bold text-lg text-slate-800">场景四：在网络质量极差的环境下</h3>
+                        <p class="text-sm text-slate-500 mt-1">高延迟、高丢包</p>
+                        <p class="mt-4 text-slate-600"><strong class="text-sky-600">推荐协议：Hysteria</strong></p>
+                        <p class="text-sm mt-2 text-slate-500">理由：这是Hysteria的主场。其定制拥塞控制算法能够“压榨”出每一分带宽，提供其他协议无法比拟的稳定性和速度。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-6 text-sm text-slate-500">
+        <p>&copy; 2024 现代代理协议交互式指南。内容根据技术报告生成。</p>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const state = {
+        activeSection: 'intro',
+        activeProtocol: 'socks5',
+        activeMetric: 'stealth'
+    };
+
+    const sections = document.querySelectorAll('[data-section]');
+    const navLinks = document.querySelectorAll('[data-nav]');
+    const mobileNav = document.getElementById('mobile-nav');
+
+    const protocolTabs = document.querySelectorAll('[data-protocol-tab]');
+    const protocolContents = document.querySelectorAll('[data-protocol-content]');
+    
+    const metricButtons = document.querySelectorAll('.metric-btn');
+    let comparisonChart;
+
+    const chartData = {
+        labels: ['SOCKS5', 'Shadowsocks', 'VMess', 'VLESS', 'Trojan', 'Hysteria'],
+        metrics: {
+            stealth: {
+                label: '抗探测能力 (越高越强)',
+                data: [0, 2, 5, 8, 10, 10],
+                backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                borderColor: 'rgba(14, 165, 233, 1)',
+            },
+            performance: {
+                label: '常规网络性能 (越高越快)',
+                data: [9, 9, 6, 10, 9, 8],
+                backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                borderColor: 'rgba(22, 163, 74, 1)',
+            },
+            simplicity: {
+                label: '配置简易度 (越高越简单)',
+                data: [8, 9, 3, 6, 5, 4],
+                backgroundColor: 'rgba(249, 115, 22, 0.6)',
+                borderColor: 'rgba(234, 88, 12, 1)',
+            },
+            flexibility: {
+                label: '功能灵活性 (越高越灵活)',
+                data: [2, 3, 10, 8, 4, 6],
+                backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                borderColor: 'rgba(124, 58, 237, 1)',
+            }
+        }
+    };
+    
+    function render() {
+        // Handle main sections
+        sections.forEach(section => {
+            section.classList.toggle('active', section.id === state.activeSection);
+        });
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.dataset.nav === state.activeSection);
+        });
+        if (mobileNav.value !== state.activeSection) {
+            mobileNav.value = state.activeSection;
+        }
+
+        // Handle protocol tabs only if we are in the protocols section
+        if(state.activeSection === 'protocols') {
+            protocolTabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.protocolTab === state.activeProtocol);
+            });
+            protocolContents.forEach(content => {
+                content.classList.toggle('active', content.dataset.protocolContent === state.activeProtocol);
+            });
+        }
+        
+        // Handle chart only if we are in the comparison section
+        if (state.activeSection === 'comparison') {
+            if (!comparisonChart) {
+                initChart();
+            }
+            updateChart();
+            
+            metricButtons.forEach(btn => {
+                btn.classList.toggle('bg-sky-500', btn.dataset.metric === state.activeMetric);
+                btn.classList.toggle('text-white', btn.dataset.metric === state.activeMetric);
+                btn.classList.toggle('bg-white', btn.dataset.metric !== state.activeMetric);
+                btn.classList.toggle('text-slate-600', btn.dataset.metric !== state.activeMetric);
+            });
+        }
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        const metric = chartData.metrics[state.activeMetric];
+        comparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: metric.label,
+                    data: metric.data,
+                    backgroundColor: metric.backgroundColor,
+                    borderColor: metric.borderColor,
+                    borderWidth: 1,
+                    borderRadius: 5,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 10,
+                        grid: {
+                           color: '#e2e8f0' 
+                        },
+                        ticks: {
+                            color: '#64748b'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#1e293b',
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#1e293b'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        padding: 10,
+                        cornerRadius: 4,
+                        displayColors: false,
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        if (!comparisonChart) return;
+        const metric = chartData.metrics[state.activeMetric];
+        comparisonChart.data.datasets[0].label = metric.label;
+        comparisonChart.data.datasets[0].data = metric.data;
+        comparisonChart.data.datasets[0].backgroundColor = metric.backgroundColor;
+        comparisonChart.data.datasets[0].borderColor = metric.borderColor;
+        comparisonChart.update();
+    }
+
+    // Event Listeners
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            state.activeSection = link.dataset.nav;
+            window.history.pushState({}, '', `#${state.activeSection}`);
+            render();
+        });
+    });
+    
+    mobileNav.addEventListener('change', (e) => {
+        state.activeSection = e.target.value;
+        window.history.pushState({}, '', `#${state.activeSection}`);
+        render();
+    });
+
+    protocolTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            state.activeProtocol = tab.dataset.protocolTab;
+            render();
+        });
+    });
+    
+    metricButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.activeMetric = btn.dataset.metric;
+            render();
+        });
+    });
+
+    // Handle hash on initial load
+    const initialHash = window.location.hash.substring(1);
+    if (['intro', 'protocols', 'comparison', 'recommendations'].includes(initialHash)) {
+        state.activeSection = initialHash;
+    }
+    
+    // Initial render
+    render();
+});
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VIX指数与标普500指数关系深度研究报告</title>
+<style>
+:root{
+  --bg:#0b1020;--card:#111827;--card2:#162033;--text:#eef2ff;--muted:#a7b0c7;
+  --line:#2a3552;--accent:#7dd3fc;--accent2:#fda4af;--good:#86efac;--warn:#fde68a;
+  --paper:#f8fafc;--ink:#0f172a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;background:linear-gradient(180deg,#07111f 0%,#0b1020 30%,#111827 100%);color:var(--text);line-height:1.75}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:980px;margin:0 auto;padding:18px 14px 56px}
+.hero{padding:28px 18px 22px;border:1px solid rgba(125,211,252,.25);border-radius:26px;background:radial-gradient(circle at 20% 10%,rgba(125,211,252,.22),transparent 32%),radial-gradient(circle at 90% 30%,rgba(253,164,175,.16),transparent 30%),rgba(17,24,39,.85);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.eyebrow{font-size:13px;color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:clamp(28px,8vw,54px);line-height:1.08;margin:10px 0 14px;letter-spacing:-.04em}
+.subtitle{color:var(--muted);font-size:16px;margin:0}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.04);color:#dbeafe}
+.toc{position:sticky;top:0;z-index:5;margin:14px -14px 20px;padding:10px 14px;background:rgba(11,16,32,.88);backdrop-filter:blur(10px);overflow:auto;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.08)}
+.toc a{display:inline-block;margin-right:8px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;font-size:13px;color:#dbeafe;background:rgba(255,255,255,.04)}
+section{margin:18px 0;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:rgba(17,24,39,.76);box-shadow:0 10px 30px rgba(0,0,0,.16)}
+h2{font-size:24px;line-height:1.25;margin:2px 0 14px;letter-spacing:-.02em}
+h3{font-size:19px;margin:22px 0 10px;color:#e0f2fe}
+p{margin:12px 0;color:#e5e7eb}
+strong{color:#fff}
+.kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+.kpi .item{padding:13px;border-radius:18px;background:linear-gradient(180deg,rgba(125,211,252,.12),rgba(255,255,255,.04));border:1px solid rgba(125,211,252,.18)}
+.kpi .num{font-size:25px;font-weight:800;letter-spacing:-.03em}
+.kpi .lab{font-size:12px;color:var(--muted);line-height:1.45}
+.callout{padding:14px 15px;border-left:4px solid var(--accent);background:rgba(125,211,252,.08);border-radius:16px;margin:14px 0}
+.warn{border-left-color:var(--warn);background:rgba(253,230,138,.08)}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+.card{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(255,255,255,.04)}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:16px;margin:14px 0;background:rgba(255,255,255,.03)}
+table{border-collapse:collapse;min-width:760px;width:100%;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{position:sticky;left:0;background:#182235;color:#e0f2fe;text-align:left}
+td{color:#e5e7eb}
+.figure{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#0f172a;margin:16px 0}
+.figure svg{width:100%;height:auto;display:block}
+.figcap{padding:10px 12px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+pre{overflow:auto;background:#020617;color:#dbeafe;border:1px solid #1e293b;border-radius:16px;padding:14px;font-size:12px;line-height:1.6}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+details{border:1px solid var(--line);border-radius:16px;padding:10px 12px;background:rgba(255,255,255,.03);margin:12px 0}
+summary{cursor:pointer;color:#e0f2fe;font-weight:700}
+.footer{font-size:12px;color:var(--muted);text-align:center;padding:20px}
+@media (min-width:760px){.container{padding:28px 22px 70px}.kpi{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(2,1fr)}section{padding:24px}.hero{padding:42px}}
+@media print{body{background:white;color:#111}.toc{display:none}.container{max-width:none}.hero,section{box-shadow:none;background:white;color:#111;border-color:#ddd}p,td{color:#111}.subtitle,.figcap,.lab{color:#555}.badge{color:#111}pre{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<div class="container">
+<header class="hero">
+  <div class="eyebrow">Deep Research · Mobile HTML Report</div>
+  <h1>VIX指数与标普500指数关系的深度研究报告</h1>
+  <p class="subtitle">单页 HTML 版：保留原报告正文、关键数据、表格、模型说明、危机事件、代码片段与参考来源说明；排版按手机端优先优化。</p>
+  <div class="meta">
+    <span class="badge">样本：1990-01-02 至 2026-04-24</span>
+    <span class="badge">频率：日频为主</span>
+    <span class="badge">核心关系：收益—波动预期—风险厌恶</span>
+    <span class="badge">非投资建议</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#summary">执行摘要</a>
+  <a href="#data">研究设计与数据</a>
+  <a href="#stats">描述性特征</a>
+  <a href="#models">计量模型</a>
+  <a href="#tail">尾部与危机</a>
+  <a href="#practice">实务含义</a>
+  <a href="#refs">参考与代码</a>
+</nav>
+
+<section id="summary">
+<h2>执行摘要</h2>
+<p>本文以“若未特别指定，则采用 1990 年至今”为默认样本窗口，对 VIX 与标普500之间的关系做日频实证分析；同时单独讨论 intraday 可得性，但没有把 intraday 作为主估计样本，因为公开、连续、免费且可长期回溯的一致性分钟级历史并不完整。</p>
+<p>VIX 的定义来自基于 SPX 期权价格的 30 日前瞻隐含波动率。Cboe 公开提供 1990 年至今的 VIX 历史数据和 2006 年至今的 VVIX 历史数据。标普500方面，本文将 OpenIntro 文档注明源自 Yahoo Finance 的 1950–2018 日频序列，与由 St. Louis Fed/FRED 发布、原始来源为 S&P Dow Jones Indices 的 2016–2026 日频标普500序列拼接；这是因为 FRED 页面说明该官方日频接口受许可限制，仅保留最近 10 年日频历史。</p>
+
+<div class="kpi">
+  <div class="item"><div class="num">-0.714</div><div class="lab">标普500日对数收益与 VIX 日对数变化的当期相关</div></div>
+  <div class="item"><div class="num">-0.795</div><div class="lab">252日滚动相关中位数</div></div>
+  <div class="item"><div class="num">9,141</div><div class="lab">共同交易日样本数</div></div>
+  <div class="item"><div class="num">82.69</div><div class="lab">样本内 VIX 最大值</div></div>
+</div>
+
+<div class="callout">
+<strong>核心结论：</strong>VIX 与标普500不是“长期均衡关系”，而是围绕收益冲击、波动预期和风险厌恶的短期—中期联动关系。这种关系长期稳定、显著负相关、非对称、状态依赖，并且在尾部和危机时段进一步放大。
+</div>
+
+<p>第一，VIX 与标普500不是“长期均衡关系”，而是<strong>围绕收益冲击、波动预期和风险厌恶的短期—中期联动关系</strong>。在 1990-01-02 至 2026-04-24 的共同交易日样本中，标普500日对数收益与 VIX 日对数变化的当期相关系数约为 <strong>-0.714</strong>，252 日滚动相关的中位数约为 <strong>-0.795</strong>，说明这种负相关不是偶发，而是长期稳定、时变但高度持续的事实。</p>
+<p>第二，这一关系<strong>显著非对称</strong>：负收益日对应的 VIX 上升幅度明显大于正收益日对应的 VIX 回落幅度。第三，这一关系<strong>存在双向预测性但并非长期协整</strong>：收益与 VIX 变化的 VAR(3) Granger 检验在两个方向上都显著，但 log(SPX) 与 log(VIX) 不满足共同 I(1) 前提，因而 VECM 不适用。第四，这一关系在<strong>尾部和危机时段更强</strong>：t-copula 显示正的上尾依赖，极端股指下跌与极端 VIX 飙升会同步聚集。</p>
+<p>对投资者和风险管理者而言，最重要的含义是：<strong>VIX 不是简单的“股市反向价格”，而是一个带有凸性、状态依赖和尾部聚集特征的风险价格指标</strong>。把它当作“市场下跌的线性镜像”会低估高波动状态下的非线性放大；把它当作“稳定的长期均值回复交易工具”又会忽视危机中持续高位停留与 VVIX 放大的风险。更实际的做法，是把 VIX、VVIX、滚动相关和 DCC 动态相关一起纳入风险监控，而不是只盯一个静态阈值。</p>
+</section>
+
+<section id="data">
+<h2>研究设计与数据</h2>
+<p>本研究的经验设计遵循“定义—拼接—预处理—建模—稳健性—危机复盘”的流程。VIX 采用 Cboe 官方历史收盘序列；VVIX 采用 Cboe 官方历史序列，作为“波动率的波动率”的直接代理。标普500采用两段式拼接：1990–2018 使用 OpenIntro 文档注明来源为 Yahoo Finance 的日频 S&P 500 序列；2016–2026 使用 FRED 中原始来源标注为 S&P Dow Jones Indices 的 SP500 日频收盘序列。</p>
+<p>2016–2018 的重叠区在实际拼接中最大绝对差仅约 <strong>0.04 个指数点</strong>，缝合误差可以忽略。VIX 的方法论层面还要加一个关键注记：Cboe 页面说明，原始 1993 年 VIX 先基于 S&P 100 期权，2003 年更新为基于 S&P 500 期权的新版本方法；Cboe 同时另行提供旧方法的 VXO 历史数据，因此 1990 年以来的 VIX 序列应视为“新版方法的一致化历史”。</p>
+
+<div class="figure">
+<svg viewBox="0 0 900 360" role="img" aria-label="研究流程图">
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#fda4af"/></linearGradient></defs>
+<rect width="900" height="360" fill="#0f172a"/>
+<g font-family="sans-serif" font-size="18" fill="#e5e7eb" text-anchor="middle">
+<g transform="translate(90,80)"><circle r="34" fill="#1e293b" stroke="#7dd3fc"/><text y="6">数据</text></g>
+<g transform="translate(230,80)"><circle r="34" fill="#1e293b" stroke="#7dd3fc"/><text y="6">拼接</text></g>
+<g transform="translate(370,80)"><circle r="34" fill="#1e293b" stroke="#7dd3fc"/><text y="6">预处理</text></g>
+<g transform="translate(510,80)"><circle r="34" fill="#1e293b" stroke="#7dd3fc"/><text y="6">相关</text></g>
+<g transform="translate(650,80)"><circle r="34" fill="#1e293b" stroke="#7dd3fc"/><text y="6">VAR</text></g>
+<g transform="translate(790,80)"><circle r="34" fill="#1e293b" stroke="#7dd3fc"/><text y="6">回归</text></g>
+<g transform="translate(230,240)"><circle r="34" fill="#1e293b" stroke="#fda4af"/><text y="6">尾部</text></g>
+<g transform="translate(370,240)"><circle r="34" fill="#1e293b" stroke="#fda4af"/><text y="6">DCC</text></g>
+<g transform="translate(510,240)"><circle r="34" fill="#1e293b" stroke="#fda4af"/><text y="6">危机</text></g>
+<g transform="translate(650,240)"><circle r="34" fill="#1e293b" stroke="#fda4af"/><text y="6">结论</text></g>
+</g>
+<g stroke="url(#g)" stroke-width="4" fill="none" stroke-linecap="round">
+<path d="M124 80H196M264 80H336M404 80H476M544 80H616M684 80H756"/>
+<path d="M790 114C760 180 300 170 230 206"/>
+<path d="M264 240H336M404 240H476M544 240H616"/>
+</g>
+</svg>
+<div class="figcap">研究流程：下载与对齐数据 → 拼接 SPX 日频序列 → 构造收益率与 VIX 变化 → 描述统计与滚动相关 → 交叉相关与 Granger 检验 → VAR/VECM 可行性检查 → OLS 与分位数回归 → Copula/EVT 尾部分析 → DCC-GARCH 时变相关 → 危机事件研究 → 投资与风控含义。</div>
+</div>
+
+<p>预处理步骤如下。首先，把标普500价格变成日对数收益 \(r_t = 100\ln(SPX_t/SPX_{t-1})\)；其次，把 VIX 变成日对数变化 \(\Delta \ln VIX_t = 100\ln(VIX_t/VIX_{t-1})\)，因为收益率与 VIX 变化是最自然的平稳配对；再次，构造 21 日年化实现波动率 \(RV21\) 与 21 日年化 VIX 变化波动 \(VoV21\)，并在 2006 年后用官方 VVIX 做直接替代；最后，用共同交易日交集对齐，避免周末和节假日错位。</p>
+<p>之所以把 intraday 放在补充层面，是因为 Cboe 的公开历史页主要提供日频收盘，而 intraday 连续历史更多通过仪表板与数据商渠道提供；现有文献则表明 5 分钟级别的 VIX 对 S&P 500 收益分布具有显著信息含量。</p>
+
+<h3>数据集比较表</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>数据集</th><th>提供方</th><th>频率</th><th>覆盖期</th><th>本文用途</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td>VIX_History.csv</td><td>Cboe</td><td>日频收盘</td><td>1990–至今</td><td>主 VIX 序列</td><td>官方历史页直接下载</td></tr>
+<tr><td>VVIX_History.csv</td><td>Cboe</td><td>日频</td><td>2006–至今</td><td>直接 vol-of-vol 代理</td><td>用于 OLS/分位数回归稳健性</td></tr>
+<tr><td>sp500_1950_2018</td><td>Yahoo Finance 来源的 OpenIntro 数据集</td><td>日频</td><td>1950–2018</td><td>1990–2018 的 SPX 主序列</td><td>文档明示源自 Yahoo Finance</td></tr>
+<tr><td>SP500 via FRED/Eco3min</td><td>FRED，原始来源 S&P Dow Jones</td><td>日频收盘</td><td>2016–至今</td><td>2016–2026 的 SPX 扩展与交叉验证</td><td>FRED 页面明示日频只保留最近 10 年</td></tr>
+<tr><td>Intraday dashboard/data products</td><td>Cboe 等</td><td>分钟级</td><td>非统一公开长样本</td><td>仅概念讨论</td><td>不纳入主回归样本</td></tr>
+</tbody>
+</table>
+</div>
+<p>这套数据设计在可获得性、官方性与可复制性之间做了折中：VIX 与 VVIX 尽量坚持官方 Cboe；标普500则在长样本上采用 Yahoo Finance 来源序列，在最近十年与官方来源重叠验证后向现在延伸。对“若未说明则按 1990 年至今”的规则，本文已按该规则执行，并明确注明了因数据可得性而产生的拼接选择。</p>
+</section>
+
+<section id="stats">
+<h2>描述性特征与时变相关</h2>
+<p>在 1990-01-02 至 2026-04-24 的共同样本中，共有 <strong>9,141</strong> 个交易日。标普500日对数收益的均值约 <strong>0.033%</strong>、标准差约 <strong>1.137%</strong>；VIX 日对数变化的均值接近零、标准差约 <strong>6.82</strong>；VIX 水平的均值约 <strong>19.46</strong>、标准差约 <strong>7.76</strong>、样本最大值 <strong>82.69</strong>；2006 年以后 VVIX 的均值约 <strong>93.47</strong>。几个分布都明显偏离正态：收益厚尾、VIX 变化右偏厚尾、VIX 水平强右偏；这正是后文使用分位数回归、copula 与 EVT 的原因。</p>
+
+<div class="figure">
+<svg viewBox="0 0 900 360" role="img" aria-label="SPX与VIX时间序列示意图">
+<rect width="900" height="360" fill="#0f172a"/>
+<g stroke="#334155" stroke-width="1"><path d="M70 300H850"/><path d="M70 230H850"/><path d="M70 160H850"/><path d="M70 90H850"/></g>
+<text x="70" y="40" fill="#e5e7eb" font-size="18">S&P 500 and VIX time series（示意重绘）</text>
+<path d="M70 290 C150 280 200 260 250 245 C330 230 360 210 430 200 C510 185 570 165 630 150 C700 130 760 110 850 90" fill="none" stroke="#7dd3fc" stroke-width="5"/>
+<path d="M70 250 L130 245 L160 160 L200 245 L260 235 L300 130 L350 238 L430 228 L480 135 L530 220 L600 210 L640 80 L680 215 L760 195 L810 120 L850 205" fill="none" stroke="#fda4af" stroke-width="4"/>
+<g fill="#a7b0c7" font-size="13"><text x="75" y="330">1990</text><text x="250" y="330">2001</text><text x="430" y="330">2008</text><text x="630" y="330">2020</text><text x="815" y="330">2026</text></g>
+<g font-size="14"><text x="670" y="65" fill="#7dd3fc">SPX 长期上行</text><text x="600" y="105" fill="#fda4af">VIX 危机尖峰</text></g>
+</svg>
+<div class="figcap">原报告图表位：S&P 500 and VIX time series。图中可直观看到，VIX 的大峰值与标普500的大回撤高度同步，尤其是 1998、2001、2008、2011、2015、2018、2020、2023 和 2025 的冲击段。</div>
+</div>
+
+<p>Cboe 官方把 VIX 定义为由 SPX 期权价格提取的 30 日前瞻波动预期，因此它本来就应该对现货市场压力最敏感；Whaley、Giot 以及后续文献之所以把它称为“fear gauge”，正是因为这种同步性在危机中会被放大。</p>
+<p>更严格地看，当期相关并不是全部。全样本当期相关 \(Corr(r_t,\Delta \ln VIX_t)\) 约 <strong>-0.714</strong>。把窗口扩展到 252 日滚动相关，其均值约 <strong>-0.759</strong>、中位数约 <strong>-0.795</strong>、5% 分位数约 <strong>-0.864</strong>、最负值约 <strong>-0.897</strong>。按波动状态分组，这种负相关会在高波动区进一步加强：当 VIX&lt;20 时约 <strong>-0.713</strong>，20≤VIX&lt;30 时约 <strong>-0.765</strong>，VIX≥30 时约 <strong>-0.776</strong>。</p>
+
+<div class="figure">
+<svg viewBox="0 0 900 360" role="img" aria-label="时变相关示意图">
+<rect width="900" height="360" fill="#0f172a"/>
+<g stroke="#334155" stroke-width="1"><path d="M70 300H850"/><path d="M70 235H850"/><path d="M70 170H850"/><path d="M70 105H850"/></g>
+<text x="70" y="40" fill="#e5e7eb" font-size="18">Time-varying correlation of SPX returns and VIX changes（示意重绘）</text>
+<path d="M70 220 C120 245 170 250 220 230 C270 205 320 250 370 238 C420 220 470 260 520 245 C570 210 620 275 670 260 C720 235 770 250 850 225" fill="none" stroke="#7dd3fc" stroke-width="4"/>
+<path d="M70 210 C150 230 210 225 280 205 C350 250 410 235 470 220 C540 235 600 260 650 245 C700 215 770 240 850 215" fill="none" stroke="#fda4af" stroke-width="4" opacity=".9"/>
+<text x="75" y="318" fill="#a7b0c7" font-size="13">相关长期显著为负，主要差异在“负得多深”</text>
+<text x="720" y="95" fill="#7dd3fc" font-size="14">252日滚动相关</text><text x="720" y="120" fill="#fda4af" font-size="14">DCC-GARCH</text>
+</svg>
+<div class="figcap">原报告图表位：Time-varying correlation。252 日滚动相关与 DCC-GARCH 动态相关都说明，相关性不是常数，但大多数时间都显著为负。</div>
+</div>
+
+<p>本文估计的 DCC 均值约 <strong>-0.766</strong>，5% 分位数约 <strong>-0.870</strong>，95% 分位数约 <strong>-0.591</strong>。换句话说，VIX 与股指收益的关系不是“有时正有时负”的松散联系，而是<strong>几乎永远为负，只是负得有多深的问题</strong>。Engle 的 DCC 框架本来就是为这种“相关性本身随时间波动”的资产关系设计的。</p>
+</section>
+
+<section id="models">
+<h2>因果结构与计量模型</h2>
+<p>先说 VECM。对 level 变量做单位根与协整检查后，结论很清楚：<strong>log(SPX)</strong> 看起来是 I(1) 过程，而 <strong>log(VIX)</strong> 在长期样本中更接近均值回复的 I(0) 过程；二者不满足“都为 I(1)”这个进入 VECM 的前提。基于此，本文不把 VECM 当作主框架，而是使用以 \(r_t\) 和 \(\Delta \ln VIX_t\) 为核心的 VAR/Granger 与回归体系。</p>
+<p>这一点在经济直觉上也合理：股价水平是带趋势的价格过程，VIX 是对未来一个月条件方差与风险厌恶的高频价格化指标，它们不是天然要在 level 上协同漂移。Bekaert 与 Hoerova 对 VIX 的分解也支持这一点：VIX 平方包含“预期实现方差”和“方差风险溢价”两部分，而不是简单的股票价格镜像。</p>
+<p>在 VAR 里，按 BIC 选择的一个简洁设定是 <strong>VAR(3)</strong>。Granger 检验显示：<strong>标普收益 Granger 导致 VIX 变化</strong> 的 F 统计量约 <strong>4.35</strong>，p 值约 <strong>0.0045</strong>；反过来，<strong>VIX 变化 Granger 导致标普收益</strong> 的 F 统计量约 <strong>4.72</strong>，p 值约 <strong>0.0027</strong>。</p>
+<p>这意味着存在统计意义上的双向反馈，但经济含义并不对称：从交叉相关看，真正巨大的效应集中在<strong>当期</strong>，lag 0 相关约 <strong>-0.714</strong>；而超前/滞后一天的相关都很小，约在 <strong>0.03–0.08</strong> 的量级。实务上，这通常应解释为“同一天的风险再定价 + 次日的轻微反身性/均值回复”，而不是某个方向存在很强、很稳定的线性预测优势。</p>
+
+<h3>模型规格表</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>模型</th><th>变量</th><th>目的</th><th>本文处理</th></tr></thead>
+<tbody>
+<tr><td>滚动相关</td><td>\(Corr_t(r_{SPX}, \Delta \ln VIX)\)</td><td>查看时变线性联动</td><td>21/63/126/252 日，重点报告 252 日</td></tr>
+<tr><td>交叉相关</td><td>\(Corr(r_t,\Delta \ln VIX_{t+k})\)</td><td>查看 lead-lag</td><td>报告 \(k=-20,\dots,20\)</td></tr>
+<tr><td>Granger / VAR</td><td>\([r_t,\Delta \ln VIX_t]\)</td><td>判断短期反馈方向</td><td>BIC 选 VAR(3)</td></tr>
+<tr><td>VECM 可行性检查</td><td>\(\ln SPX_t,\ln VIX_t\)</td><td>判断是否存在 level 协整</td><td>因 \(\ln VIX\) 更接近 I(0)，最终不采用 VECM</td></tr>
+<tr><td>OLS</td><td>\(\Delta \ln VIX_t\) 对收益与 VVIX</td><td>估计线性敏感度</td><td>2006+ 样本，HAC 标准误</td></tr>
+<tr><td>分位数回归</td><td>\(\Delta \ln VIX_t\) 对收益与 VVIX</td><td>检验高压状态非线性</td><td>报告 τ=0.1/0.5/0.9</td></tr>
+<tr><td>DCC-GARCH</td><td>标普收益与 VIX 变化</td><td>估计动态条件相关</td><td>报告均值和分位数</td></tr>
+<tr><td>Copula / EVT</td><td>\(-r_t\) 与 \(\Delta \ln VIX_t\)</td><td>刻画极端共尾</td><td>比较 Gaussian 与 t-copula，并估计 GPD</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>回归层面，最有解释力的规格是 2006 年以后使用官方 VVIX 的模型：</p>
+<div class="callout">\[
+\Delta \ln VIX_t = \alpha + \beta_+ \max(r_t,0) + \beta_-(-\min(r_t,0)) + \gamma VVIX_t + \varepsilon_t.
+\]</div>
+<p>这个 OLS 的结果是：\(\beta_+ \approx -3.99\)、\(\beta_- \approx 5.07\)、\(\gamma \approx 0.0137\)、\(R^2 \approx 0.548\)。含义很直接：同样 1% 的标普正收益，对 VIX 是明显压低；同样 1% 的标普负收益，对 VIX 的抬升更强，而且方向相反、幅度更大；同时，VVIX 越高，VIX 当日变化越容易向上放大。</p>
+<p>把同一模型放到分位数回归里，\(\beta_-\) 会从 τ=0.1 的 <strong>2.93</strong> 增强到 τ=0.5 的 <strong>5.71</strong>，再增强到 τ=0.9 的 <strong>9.30</strong>；而 VVIX 系数在高分位显著转正。这意味着：<strong>真正的“VIX 对负收益的弹性”是在高压状态里才被彻底释放出来</strong>。</p>
+
+<h3>关键结果表</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>指标</th><th>规格</th><th>结果</th><th>解读</th></tr></thead>
+<tbody>
+<tr><td>当期相关</td><td>\(Corr(r_t,\Delta \ln VIX_t)\)</td><td>-0.714</td><td>强烈同步负相关</td></tr>
+<tr><td>252 日滚动相关中位数</td><td>滚动窗口</td><td>-0.795</td><td>负相关高度持久</td></tr>
+<tr><td>交叉相关峰值</td><td>\(k=0\)</td><td>-0.714</td><td>lead-lag 远弱于同步效应</td></tr>
+<tr><td>Granger：\(r \to \Delta \ln VIX\)</td><td>VAR(3)</td><td>p=0.0045</td><td>收益能预测短期 VIX 变化</td></tr>
+<tr><td>Granger：\(\Delta \ln VIX \to r\)</td><td>VAR(3)</td><td>p=0.0027</td><td>但反向也存在弱反馈</td></tr>
+<tr><td>协整可行性</td><td>\(\ln SPX,\ln VIX\)</td><td>不适用 VECM</td><td>因 \(\ln VIX\) 更接近 I(0)</td></tr>
+<tr><td>OLS：正收益系数</td><td>2006+，含 VVIX</td><td>-3.99</td><td>上涨压低 VIX</td></tr>
+<tr><td>OLS：负收益系数</td><td>2006+，含 VVIX</td><td>+5.07</td><td>下跌抬升 VIX，且更强</td></tr>
+<tr><td>OLS：VVIX 系数</td><td>2006+</td><td>+0.0137</td><td>vol-of-vol 放大 VIX</td></tr>
+<tr><td>分位数：负收益系数</td><td>τ=0.1 / 0.5 / 0.9</td><td>2.93 / 5.71 / 9.30</td><td>高压分位非线性显著增强</td></tr>
+<tr><td>DCC 均值</td><td>DCC-GARCH</td><td>-0.766</td><td>动态相关几乎始终为负</td></tr>
+<tr><td>t-copula 尾依赖</td><td>上尾</td><td>≈0.105</td><td>极端下跌与 VIX 飙升共尾</td></tr>
+<tr><td>经验 \(\chi_{0.99}\)</td><td>上尾</td><td>≈0.339</td><td>极端压力同步出现的条件概率很高</td></tr>
+<tr><td>BDS 检验</td><td>OLS 残差</td><td>p &lt; 1e-30</td><td>线性模型后仍残留非线性结构</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="tail">
+<h2>尾部联动与危机事件</h2>
+<p>最能说明问题的，不是均值，而是尾部。把“市场压力”重写成 \(-r_{SPX}\) 与 \(\Delta \ln VIX\) 的联合分布后，Gaussian copula 估计的相关参数约 <strong>0.760</strong>；Student-t copula 估计的相关参数约 <strong>0.753</strong>，自由度约 <strong>8.85</strong>，并给出上尾依赖系数约 <strong>0.105</strong>。</p>
+<p>用经验 copula 直接看，落在 99% 分位阈值以上的联合极端事件，其条件共尾概率约 <strong>0.339</strong>。这说明：在普通日子里，VIX 与股指收益可以被相关系数概括；但在真正极端的风险日里，必须用<strong>尾依赖</strong>而不是均值相关来思考。EVT 的 GPD 拟合也支持厚尾：\(-r_{SPX}\) 的 95% 阈值以上 GPD 形状参数约 <strong>0.214</strong>，\(\Delta \ln VIX\) 的对应形状参数约 <strong>0.183</strong>，都显示危机尾部比高斯世界更肥。</p>
+
+<div class="figure">
+<svg viewBox="0 0 900 360" role="img" aria-label="QQ和尾部依赖图示意">
+<rect width="900" height="360" fill="#0f172a"/>
+<text x="70" y="40" fill="#e5e7eb" font-size="18">QQ and tail dependence plots（示意重绘）</text>
+<rect x="70" y="70" width="340" height="240" fill="#111827" stroke="#334155"/>
+<line x1="95" y1="285" x2="385" y2="95" stroke="#64748b" stroke-width="2"/>
+<path d="M95 285 C145 270 185 248 225 220 C260 195 300 165 340 120 C360 95 370 82 385 78" fill="none" stroke="#7dd3fc" stroke-width="4"/>
+<text x="145" y="330" fill="#a7b0c7" font-size="13">QQ：厚尾偏离正态</text>
+<rect x="490" y="70" width="340" height="240" fill="#111827" stroke="#334155"/>
+<g fill="#fda4af" opacity=".8">
+<circle cx="535" cy="275" r="4"/><circle cx="610" cy="230" r="4"/><circle cx="650" cy="210" r="4"/><circle cx="720" cy="135" r="5"/><circle cx="780" cy="100" r="6"/><circle cx="805" cy="90" r="5"/><circle cx="735" cy="115" r="4"/>
+<circle cx="570" cy="250" r="3"/><circle cx="680" cy="170" r="4"/><circle cx="760" cy="125" r="5"/>
+</g>
+<text x="540" y="330" fill="#a7b0c7" font-size="13">经验 copula：右上角“股指大跌 + VIX 大涨”聚集</text>
+</svg>
+<div class="figcap">原报告图表位：QQ and tail dependence plots。左侧 QQ 图说明市场下跌压力和 VIX 变化都明显偏离正态；右侧经验 copula 显示极端压力点云聚集。</div>
+</div>
+
+<p>因此，把 VIX 仅仅作为“均值回复很强的波动指数”会低估它在尾部状态中的风险价格性质。Bekaert 与 Hoerova 对方差风险溢价的分解，与这里看到的尾部聚集现象在经济解释上是连贯的。</p>
+<p>脉冲响应也支持“短而猛”的耦合特征。VAR(3) 的非正交 IRF 显示，标普收益冲击对 \(\Delta \ln VIX\) 的响应主要集中在<strong>前 1–3 个交易日</strong>，随后迅速衰减；反向从 VIX 冲击到收益的响应更弱、更短。这意味着：收益冲击首先在当日与次日通过风险再定价传导到 VIX，而不是以一个长滞后、平滑扩散的结构传递。对交易和对冲来说，VIX 更像是一个<strong>快速反应、但不稳定外推</strong>的风险温度计。</p>
+
+<div class="figure">
+<svg viewBox="0 0 900 320" role="img" aria-label="VAR脉冲响应示意">
+<rect width="900" height="320" fill="#0f172a"/>
+<text x="70" y="38" fill="#e5e7eb" font-size="18">VAR impulse responses（示意重绘）</text>
+<g stroke="#334155"><path d="M70 230H830"/><path d="M70 110H830"/></g>
+<path d="M80 220 C120 95 160 155 200 190 C260 220 360 230 830 230" fill="none" stroke="#fda4af" stroke-width="5"/>
+<path d="M80 220 C125 205 165 215 210 225 C280 230 400 228 830 230" fill="none" stroke="#7dd3fc" stroke-width="4"/>
+<text x="120" y="88" fill="#fda4af" font-size="14">收益冲击 → VIX：前1–3日最强</text>
+<text x="180" y="255" fill="#7dd3fc" font-size="14">VIX冲击 → 收益：较弱较短</text>
+</svg>
+<div class="figcap">原报告图表位：VAR impulse responses。</div>
+</div>
+
+<p>危机事件研究方面，本文没有强行选取外部“新闻日”为事件日，而是用样本内<strong>危机簇中的局部 VIX 峰值日</strong>做中心点，再报告前后 5 个交易日的标普累计对数收益与 VIX 变化。这样做的优点是：事件日与市场压力的内生度一致，避免“新闻发生日”和“价格峰值日”错位。</p>
+
+<h3>危机事件窗口表</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>事件中心日</th><th>描述性标签</th><th>事件日 VIX</th><th>事件日 SPX 对数收益</th><th>前5日累计收益</th><th>后5日累计收益</th><th>[-5,+5] 累计收益</th></tr></thead>
+<tbody>
+<tr><td>1998-08-31</td><td>LTCM/Russia</td><td>44.28</td><td>-7.04%</td><td>-12.81%</td><td>6.68%</td><td>-6.13%</td></tr>
+<tr><td>2001-09-21</td><td>9/11 aftermath</td><td>42.66</td><td>-1.92%</td><td>-12.33%</td><td>7.49%</td><td>-4.84%</td></tr>
+<tr><td>2008-11-20</td><td>GFC peak</td><td>80.86</td><td>-6.95%</td><td>-19.15%</td><td>17.49%</td><td>-1.67%</td></tr>
+<tr><td>2011-08-08</td><td>US downgrade/Euro crisis</td><td>48.00</td><td>-6.90%</td><td>-13.94%</td><td>7.32%</td><td>-6.62%</td></tr>
+<tr><td>2015-08-24</td><td>China devaluation shock</td><td>40.74</td><td>-4.02%</td><td>-10.48%</td><td>4.09%</td><td>-6.40%</td></tr>
+<tr><td>2018-02-05</td><td>Volmageddon</td><td>37.32</td><td>-4.18%</td><td>-7.44%</td><td>0.27%</td><td>-7.17%</td></tr>
+<tr><td>2020-03-16</td><td>COVID panic</td><td>82.69</td><td>-12.77%</td><td>-14.07%</td><td>-6.44%</td><td>-20.50%</td></tr>
+<tr><td>2023-03-13</td><td>Regional bank shock</td><td>26.52</td><td>-0.15%</td><td>-4.88%</td><td>2.45%</td><td>-2.42%</td></tr>
+<tr><td>2025-04-08</td><td>2025 tariff shock</td><td>52.33</td><td>-1.58%</td><td>-12.27%</td><td>7.98%</td><td>-4.29%</td></tr>
+</tbody>
+</table>
+</div>
+<p>危机表有两个非常稳健的经验规律。其一，VIX 的峰值更多是<strong>对跌势与不确定性的峰值定价</strong>，并不总与最低点完全同日，因此后 5 日收益经常转正，这在 1998、2001、2008、2011、2015 和 2025 都能看到。其二，2020 是个例外：VIX 创下样本最高值 <strong>82.69</strong> 后，后 5 日收益仍继续为负，说明当不确定性同时伴随真实经济停摆和流动性枯竭时，VIX 高位并不立即意味着可机械抄底。</p>
+</section>
+
+<section id="practice">
+<h2>实务含义、局限与结论</h2>
+<p>从投资实践看，本文最重要的结论有三条。第一，<strong>VIX 更适合做风险状态变量，而不是简单方向预测器</strong>。它与当期股指收益高度负相关，但这种关系是同步和状态依赖的，不意味着“高 VIX 之后必然上涨”。</p>
+<p>第二，<strong>负收益冲击的 VIX 弹性显著大于正收益冲击的回落弹性</strong>，所以把 VIX 当作对冲工具时，真正有价值的是它的凸性，而不是线性 beta。</p>
+<p>第三，<strong>VVIX 必须和 VIX 联合看</strong>：本文回归与尾部分析都表明，当 VVIX 升高时，VIX 本身更容易发生大幅变化；对风险经理来说，这意味着仅盯 VIX 水平而忽略“波动率的波动率”，会低估波动产品与尾部保证金风险。</p>
+
+<div class="grid">
+  <div class="card"><h3>低压—弱耦合</h3><p>VIX 低、VVIX 低、相关绝对值较小，市场更接近常态波动。此时 VIX 更多是风险温度计，而不是方向信号。</p></div>
+  <div class="card"><h3>高压—强耦合</h3><p>VIX 高、VVIX 高、相关绝对值迅速加深，上尾共尾概率抬升，风险从一般波动转向系统性应激。</p></div>
+</div>
+
+<p>从风险管理看，最实用的框架不是一个阈值，而是一张四宫格：<strong>VIX 水平、VVIX 水平、滚动相关、DCC 动态相关</strong>。当 VIX 低、VVIX 低、相关绝对值较小，市场更接近“低压—弱耦合”状态；当 VIX 高、VVIX 高、相关绝对值迅速加深，而且上尾共尾概率抬升时，风险已从一般波动转向<strong>系统性应激</strong>。此时，简单线性 VaR、静态相关矩阵和正态尾部假设都可能低估损失。</p>
+<p>局限性也需要明确。本文的主样本是日频，因此没有把分钟级的微观结构、隔夜跳空和开盘集合竞价纳入主回归；intraday 只做可得性和文献层面的说明。其次，标普500长样本采用 Yahoo Finance 来源序列与官方最近十年序列拼接，虽然重叠区误差极小，但拼接本身仍然意味着“不同分发渠道的一致化处理”。再次，回归中的当期收益与当期 VIX 变化是<strong>同步关系</strong>，不应被过度解释为结构因果。最后，DCC、copula 与 EVT 的具体数值对分布假设、阈值选择和样本窗口敏感，因此这些模型更适合做<strong>压力识别和稳健排序</strong>，而不适合迷信到小数点后若干位。</p>
+
+<div class="callout warn">
+<p>如果把这份报告的方法论压缩成一句话，最准确的表述是：<strong>VIX 与标普500之间没有一个可用于 VECM 的稳定 level 协整关系，但存在一个极其稳定、显著非对称、时变且在尾部放大的“收益—波动预期—风险厌恶”耦合机制。</strong></p>
+</div>
+</section>
+
+<section id="refs">
+<h2>关键参考文献与可复现代码</h2>
+<p>Whaley 把 VIX 定义为“investor fear gauge”，是理解 VIX 经济含义的起点。Giot 进一步证明了隐含波动率变化与股指收益之间显著、负向且对下跌敏感的关系。Bekaert 与 Hoerova 则把 VIX 平方分解为条件方差与方差风险溢价，为“为什么 VIX 不只是 realized vol 的预测器”提供了更深的资产定价解释。Engle 的 DCC 模型是本文时变相关部分的标准工具。Tapiero 之类的 intraday 研究则说明，VIX 的信息含量不仅存在于日频，也存在于更高频的收益分布预测里。</p>
+
+<h3>主要来源</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>来源</th><th>用途</th></tr></thead>
+<tbody>
+<tr><td>Cboe VIX FAQ / VIX Historical Data / VIX Methodology</td><td>VIX 定义、历史数据与方法论</td></tr>
+<tr><td>Cboe VVIX 历史数据与相关文档</td><td>VVIX 数据与 vol-of-vol 解释</td></tr>
+<tr><td>OpenIntro / Yahoo Finance 来源的 sp500_1950_2018</td><td>标普500长历史日频序列</td></tr>
+<tr><td>FRED / S&P Dow Jones Indices</td><td>最近十年 SP500 官方来源日频序列</td></tr>
+<tr><td>Whaley (2000), The Investor Fear Gauge</td><td>VIX 作为恐惧指标的经典解释</td></tr>
+<tr><td>Giot (2005), Relationships Between Implied Volatility Indexes and Stock Index Returns</td><td>隐含波动率指数与股指收益的负相关和非对称性</td></tr>
+<tr><td>Bekaert & Hoerova (2013/2014), The VIX, the Variance Premium and Stock Market Volatility</td><td>VIX 平方分解：预期方差与方差风险溢价</td></tr>
+<tr><td>Engle (2002), Dynamic Conditional Correlation</td><td>DCC-GARCH 动态相关方法</td></tr>
+<tr><td>Tapiero (2015), Information Content of Intraday VIX</td><td>intraday VIX 信息含量</td></tr>
+</tbody>
+</table>
+</div>
+
+<details open><summary>可复现代码片段：数据下载与拼接</summary>
+<pre><code>import pandas as pd
+import numpy as np
+
+# Cboe official
+vix = pd.read_csv("https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv")
+vvix = pd.read_csv("https://cdn.cboe.com/api/global/us_indices/daily_prices/VVIX_History.csv")
+
+# Yahoo Finance source via OpenIntro
+spx_old = pd.read_csv("https://www.openintro.org/data/csv/sp500_1950_2018.csv")
+
+# FRED / S&P Dow Jones recent history
+spx_new = pd.read_csv("https://eco3min.fr/dataset/sp500-price-index.csv")
+
+# parse and stitch
+vix["date"] = pd.to_datetime(vix["DATE"], format="%m/%d/%Y")
+vvix["date"] = pd.to_datetime(vvix["DATE"], format="%m/%d/%Y")
+spx_old["date"] = pd.to_datetime(spx_old["Date"])
+spx_new["date"] = pd.to_datetime(spx_new["date"])
+
+spx_old = spx_old[["date", "Close"]].rename(columns={"Close": "spx"})
+spx_new = spx_new[["date", "sp500_close"]].rename(columns={"sp500_close": "spx"})
+spx = pd.concat([spx_old[spx_old["date"] < spx_new["date"].min()], spx_new], ignore_index=True)
+spx = spx.drop_duplicates("date").sort_values("date")
+
+vix = vix[["date", "CLOSE"]].rename(columns={"CLOSE": "vix"})
+vvix = vvix[["date", "VVIX"]].rename(columns={"VVIX": "vvix"})
+
+df = spx.merge(vix, on="date", how="inner").merge(vvix, on="date", how="left")
+df = df[df["date"] >= "1990-01-02"].sort_values("date")
+
+df["r_spx"] = 100 * np.log(df["spx"] / df["spx"].shift(1))
+df["dln_vix"] = 100 * np.log(df["vix"] / df["vix"].shift(1))
+df["pos_r"] = df["r_spx"].clip(lower=0)
+df["neg_r_abs"] = -df["r_spx"].clip(upper=0)</code></pre>
+</details>
+
+<details><summary>可复现代码片段：滚动相关与交叉相关</summary>
+<pre><code># rolling correlation and cross-correlation
+corr0 = df["r_spx"].corr(df["dln_vix"])
+df["rollcorr_252"] = df["r_spx"].rolling(252).corr(df["dln_vix"])
+
+lags = range(-20, 21)
+xcc = {}
+for k in lags:
+    xcc[k] = df["r_spx"].corr(df["dln_vix"].shift(-k))
+
+print("contemporaneous corr:", corr0)
+print("lag -1 / 0 / +1:", xcc[-1], xcc[0], xcc[1])</code></pre>
+</details>
+
+<details><summary>可复现代码片段：VAR 与 Granger 检验</summary>
+<pre><code>from statsmodels.tsa.api import VAR
+
+var_df = df[["r_spx", "dln_vix"]].dropna()
+var_mod = VAR(var_df)
+lag_order = var_mod.select_order(10).bic   # parsimonious choice
+var_res = var_mod.fit(lag_order)
+
+print(var_res.summary())
+print(var_res.test_causality("dln_vix", ["r_spx"], kind="f").summary())
+print(var_res.test_causality("r_spx", ["dln_vix"], kind="f").summary())
+
+irf = var_res.irf(10)
+# irf.plot(orth=False)</code></pre>
+</details>
+
+<details><summary>可复现代码片段：OLS 与分位数回归</summary>
+<pre><code>import statsmodels.api as sm
+
+reg = df[["dln_vix", "pos_r", "neg_r_abs", "vvix"]].dropna()
+X = sm.add_constant(reg[["pos_r", "neg_r_abs", "vvix"]])
+
+ols = sm.OLS(reg["dln_vix"], X).fit(cov_type="HAC", cov_kwds={"maxlags": 5})
+print(ols.summary())
+
+for q in [0.1, 0.5, 0.9]:
+    qr = sm.QuantReg(reg["dln_vix"], X).fit(q=q)
+    print(f"\nquantile = {q}")
+    print(qr.params)</code></pre>
+</details>
+
+<details><summary>可复现代码片段：经验上尾依赖</summary>
+<pre><code># simple empirical upper-tail dependence
+stress = pd.DataFrame({
+    "x": -df["r_spx"],      # market drop pressure
+    "y": df["dln_vix"]      # VIX jump
+}).dropna()
+
+u = stress.rank(method="average") / (len(stress) + 1)
+
+for q in [0.95, 0.99]:
+    mask_x = u["x"] > q
+    mask_y = u["y"] > q
+    cond_prob = (mask_x & mask_y).mean() / (1 - q)
+    print(f"empirical tail dependence at {q}: {cond_prob:.3f}")</code></pre>
+</details>
+</section>
+
+<div class="footer">生成时间：2026-04-28 · 单页移动端 HTML · 内容基于上方深度研究报告整理，图表以移动端友好的示意 SVG 方式重绘。</div>
+</div>
+</body>
+</html>

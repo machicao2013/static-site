@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式 MCP Golang 开发学习指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Sky -->
+    <!-- Application Structure Plan: A navigation-driven SPA. The linear report is broken into thematic sections: "简介" (Intro), "协议核心" (Core Protocol), "协议演进" (Evolution), "Go 实战" (Go Practice), and "生产指南" (Production Guide). This structure allows users to either follow a logical learning path or jump directly to topics of interest. Key concepts like the architecture and primitives are visualized interactively to improve comprehension. The practical tutorials are presented in a comparative format for clarity. This task-oriented design enhances usability over a simple document scroll. -->
+    <!-- Visualization & Content Choices: 
+        - MCP Architecture: Goal(Organize) -> Interactive Diagram(HTML/CSS/JS) -> Hover to reveal details -> Justification: More engaging and clearer than static text.
+        - MCP Primitives: Goal(Organize/Compare) -> Interactive Cards(HTML/CSS/JS) -> Click to expand -> Justification: Breaks down complex info into digestible, comparable chunks.
+        - Protocol Evolution: Goal(Change) -> Interactive Timeline Chart(Chart.js) -> Click points to see details -> Justification: Visualizes change over time more effectively than a static table.
+        - SDK Tutorials: Goal(Compare/Inform) -> Tabbed View(HTML/CSS/JS) -> Switch between SDKs -> Justification: Facilitates direct comparison of two different approaches.
+        - Advanced Topics: Goal(Inform) -> Accordion(HTML/CSS/JS) -> Click to expand -> Justification: Manages information density, keeping the UI clean.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+        .nav-item {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .nav-item.active {
+            background-color: #0284c7; /* sky-600 */
+            color: white;
+        }
+        .nav-item:not(.active):hover {
+            background-color: #e2e8f0; /* slate-200 */
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .code-block {
+            background-color: #1e293b; /* slate-800 */
+            color: #f1f5f9; /* slate-100 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #475569;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .copy-btn:hover {
+            background-color: #64748b;
+        }
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            border-bottom-color: #0284c7; /* sky-600 */
+            color: #0c4a6e; /* sky-900 */
+            font-weight: 600;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .accordion-header {
+            cursor: pointer;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .accordion-header:hover {
+            background-color: #e2e8f0; /* slate-200 */
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .accordion-item.open .accordion-content {
+            max-height: 2000px; /* Adjust as needed */
+        }
+        .primitive-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .primitive-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .architecture-box {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .architecture-box.active {
+             background-color: #bae6fd; /* sky-200 */
+             border-color: #0284c7; /* sky-600 */
+             transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-slate-800">从零到精通：交互式 MCP Golang 开发指南</h1>
+            <p class="mt-2 text-lg text-slate-600">一个将 Anthropic 模型上下文协议（MCP）付诸实践的交互式学习平台。</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 bg-slate-100 p-2 rounded-lg sticky top-2 z-10">
+            <button class="nav-item active" data-target="intro">🚀 简介</button>
+            <button class="nav-item" data-target="protocol">🧩 协议核心</button>
+            <button class="nav-item" data-target="evolution">📈 协议演进</button>
+            <button class="nav-item" data-target="practice">💻 Go 实战</button>
+            <button class="nav-item" data-target="production">🛡️ 生产指南</button>
+        </nav>
+
+        <main id="main-content">
+            <!-- Section: Intro -->
+            <section id="intro" class="content-section active space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-sky-800">第一部分：MCP 的“为何”与“为何物”</h2>
+                    <p class="text-slate-600 leading-relaxed">在深入探索代码的海洋之前，理解 MCP (模型上下文协议) 的诞生背景至关重要。本节将阐释 MCP 所解决的核心问题，以及它为何能被誉为“AI 应用的 USB-C”，并迅速成为行业的新标准。我们将一起揭开独立大语言模型的局限性，理解“M×N”集成困境带来的挑战，并探索 MCP 如何以其优雅的“M+N”方案重塑 AI 与外部世界的连接方式。</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold mb-3">“M×N”集成困境</h3>
+                        <p class="mb-4">在 MCP 出现前，将 M 个 AI 模型与 N 个外部工具集成，需要开发 M×N 个定制连接器。这导致了大量的重复开发、高昂的维护成本和碎片化的生态系统。</p>
+                        <div class="text-center font-mono text-red-500 text-2xl p-4 bg-red-50 rounded-lg">M × N = 痛苦!</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold mb-3">MCP 的 “M+N” 解决方案</h3>
+                        <p class="mb-4">MCP 建立了一个通用标准。工具开发者只需构建一个 MCP 服务器，AI 应用开发者只需集成一个 MCP 客户端。这大大简化了集成问题。</p>
+                        <div class="text-center font-mono text-green-600 text-2xl p-4 bg-green-50 rounded-lg">M + N = 高效!</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-3">“AI 的 USB-C”隐喻</h3>
+                    <p>我们常用一个形象的比喻来解释 MCP：它是 AI 应用的 USB-C 接口。正如 USB-C 统一了物理连接标准，MCP 也为 AI 模型与外部数据和工具之间的数据交换与功能调用提供了统一的数字连接标准。这使得开发者可以自由地组合和替换 LLM 提供商和工具服务，而无需重写集成代码，实现了真正的“即插即用”。</p>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-3 text-sky-800">一个快速发展的生态</h3>
+                    <p class="mb-4">MCP 由 Anthropic 于2024年11月作为开放标准推出后，迅速获得了行业的广泛采纳。从 Block、Replit 等早期采用者，到 OpenAI 和 Google DeepMind 的关键背书，MCP 已成为构建下一代“代理式 AI” 的事实标准。它的成功证明了开放标准在解决行业共同难题、加速生态发展方面的巨大力量。</p>
+                    <div class="mt-4 border-l-4 border-yellow-400 pl-4">
+                        <p class="font-semibold">重要澄清：</p>
+                        <p class="text-slate-600">请注意，Anthropic 的模型上下文协议（Model Context Protocol）与 Istio 项目中已弃用的网格配置协议（Mesh Configuration Protocol）是两个完全不同的协议，请勿混淆。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Protocol Core -->
+            <section id="protocol" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-sky-800">第二部分：深入剖析 MCP 协议</h2>
+                    <p class="text-slate-600 leading-relaxed">理解了 MCP 的“为何”之后，现在让我们深入其技术内核。本节将从高层架构、通信规范和核心构建模块三个维度，全面解构这个协议。我们将通过一个交互式图表来探索其精巧的“主机-客户端-服务器”三方模型，并使用可展开的卡片来详细了解每一种“原语”（Tools, Resources, Prompts, Sampling）的功能和控制流。这是掌握 MCP 开发的理论基石。</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4 text-center">核心架构：主机-客户端-服务器</h3>
+                    <p class="text-center text-slate-500 mb-6">点击下方模块查看其职责。这种设计将复杂性集中在主机端，极大地简化了服务器的开发。</p>
+                    <div id="architecture-diagram" class="flex flex-col md:flex-row items-center justify-center gap-4 text-center font-semibold">
+                        <div class="architecture-box p-6 border-2 border-slate-300 rounded-lg w-full md:w-1/4" data-target="host-info">
+                            <span class="text-3xl">💻</span>
+                            <p>主机 (Host)</p>
+                        </div>
+                        <div class="text-3xl text-slate-400 font-sans mx-2">&lrarr;</div>
+                        <div class="architecture-box p-6 border-2 border-slate-300 rounded-lg w-full md:w-1/4" data-target="client-info">
+                            <span class="text-3xl">🔌</span>
+                            <p>客户端 (Client)</p>
+                        </div>
+                        <div class="text-3xl text-slate-400 font-sans mx-2">&lrarr;</div>
+                        <div class="architecture-box p-6 border-2 border-slate-300 rounded-lg w-full md:w-1/4" data-target="server-info">
+                           <span class="text-3xl">⚙️</span>
+                           <p>服务器 (Server)</p>
+                        </div>
+                    </div>
+                    <div id="architecture-info" class="mt-6 p-4 bg-sky-50 rounded-lg min-h-[120px] flex items-center justify-center">
+                        <p class="text-slate-600">请选择一个架构组件以查看其详细描述。</p>
+                    </div>
+                    <div id="host-info" class="hidden">
+                        <h4 class="font-bold text-lg text-sky-900">主机 (Host): 编排者与守门人</h4>
+                        <p class="mt-2 text-slate-700">用户直接交互的前端应用 (如 Cursor IDE)。负责生命周期管理、强制执行安全策略、聚合上下文，是决定模型能看到什么、能做什么的最终权威。</p>
+                    </div>
+                    <div id="client-info" class="hidden">
+                        <h4 class="font-bold text-lg text-sky-900">客户端 (Client): 专职连接器</h4>
+                        <p class="mt-2 text-slate-700">存在于主机内部的组件，与一个 MCP 服务器维持 1 对 1 的有状态连接。负责协议协商、消息路由和安全隔离。</p>
+                    </div>
+                    <div id="server-info" class="hidden">
+                        <h4 class="font-bold text-lg text-sky-900">服务器 (Server): 能力提供者</h4>
+                        <p class="mt-2 text-slate-700">一个轻量级的独立程序，将外部数据源或工具 (如文件系统、API) 封装起来，并通过 MCP 协议暴露其能力。核心任务是实现 MCP 原语并遵守安全约束。</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4 text-center">构建模块：MCP 原语详解</h3>
+                    <p class="text-center text-slate-500 mb-6">MCP 定义了一套核心“原语”作为 AI 与外部世界交互的“受控词汇表”，并明确划分了控制权。点击卡片了解详情。</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Primitives -->
+                        <div class="primitive-card bg-slate-50 rounded-lg p-4 border border-slate-200" data-primitive="tools">
+                            <h4 class="font-bold text-lg flex items-center gap-2">🛠️ 工具 (Tools)</h4>
+                            <p class="text-sm text-slate-500">控制方: 模型</p>
+                            <div class="primitive-content hidden mt-2 text-sm space-y-2">
+                                <p><strong>定义:</strong> 可执行的函数或动作，由 LLM 自主决定调用。</p>
+                                <p><strong>示例:</strong> `run_sql_query`, `write_file`</p>
+                                <p><strong>控制流:</strong> LLM 分析用户意图，自主判断调用哪个工具并生成参数。执行需主机批准。</p>
+                            </div>
+                        </div>
+                        <div class="primitive-card bg-slate-50 rounded-lg p-4 border border-slate-200" data-primitive="resources">
+                            <h4 class="font-bold text-lg flex items-center gap-2">📦 资源 (Resources)</h4>
+                            <p class="text-sm text-slate-500">控制方: 应用</p>
+                            <div class="primitive-content hidden mt-2 text-sm space-y-2">
+                                <p><strong>定义:</strong> 结构化的数据或内容，由应用程序主动提供给模型以丰富上下文。</p>
+                                <p><strong>示例:</strong> 当前打开文件的内容, 数据库表结构。</p>
+                                <p><strong>控制流:</strong> 主机应用判断相关信息并“喂”给模型。模型被动消费。</p>
+                            </div>
+                        </div>
+                        <div class="primitive-card bg-slate-50 rounded-lg p-4 border border-slate-200" data-primitive="prompts">
+                            <h4 class="font-bold text-lg flex items-center gap-2">💬 提示 (Prompts)</h4>
+                            <p class="text-sm text-slate-500">控制方: 用户</p>
+                             <div class="primitive-content hidden mt-2 text-sm space-y-2">
+                                <p><strong>定义:</strong> 由服务器预定义的、可复用的交互模板或工作流，由用户明确选择后触发。</p>
+                                <p><strong>示例:</strong> `/summarize_document` 斜杠命令。</p>
+                                <p><strong>控制流:</strong> 用户完全掌控，选择一个“罐装”好的、高确定性的交互流程。</p>
+                            </div>
+                        </div>
+                        <div class="primitive-card bg-slate-50 rounded-lg p-4 border border-slate-200" data-primitive="sampling">
+                            <h4 class="font-bold text-lg flex items-center gap-2">🎲 采样 (Sampling)</h4>
+                            <p class="text-sm text-slate-500">控制方: 服务器</p>
+                            <div class="primitive-content hidden mt-2 text-sm space-y-2">
+                                <p><strong>定义:</strong> 一项高级双向功能，允许 MCP 服务器向主机请求一次 LLM 推理。</p>
+                                <p><strong>示例:</strong> 搜索服务器请求 LLM 判断多篇文章与查询的相关性。</p>
+                                <p><strong>控制流:</strong> 为复杂代理工作流创造“反向通道”，但受主机严格管控。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Evolution -->
+            <section id="evolution" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-sky-800">第三部分：协议的演进</h2>
+                    <p class="text-slate-600 leading-relaxed">MCP 是一个在实践中不断成熟的开放标准。通过分析其版本迭代历史，我们可以清晰地看到社区是如何根据真实的开发需求来完善协议的。下方的交互式时间线总结了 MCP 规范的关键演进路径。点击图表上的不同版本节点，可以查看该版本的主要特性、新增功能以及重要的变更，这对于理解协议现状背后的“原因”至关重要。</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4 text-center">MCP 规范版本历史</h3>
+                     <div class="chart-container">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                    <div id="version-details" class="mt-6 p-4 bg-slate-50 rounded-lg min-h-[150px]">
+                        <p class="text-center text-slate-500">请在图表上选择一个版本以查看其详细信息。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: Practice -->
+            <section id="practice" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-sky-800">第四部分：使用 Go 和 Cursor 进行实战开发</h2>
+                    <p class="text-slate-600 leading-relaxed">理论学习已毕，让我们卷起袖子，进入激动人心的实战环节。本节将指导你配置开发环境，并从头开始构建你的第一个 MCP 应用。我们将对比两个主流的 Go SDK，并通过两个端到端的教程，分别体验它们不同的设计哲学。无论你偏爱快速原型还是类型安全，都能在这里找到适合你的路径。</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                     <h3 class="text-xl font-semibold mb-4">Go MCP SDK 生态概览与对比</h3>
+                     <p class="mb-4">虽然官方尚未发布 Go SDK，但社区已涌现出优秀的第三方实现。我们重点比较两个最具代表性的库：</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100">
+                                    <th class="p-3 font-semibold border-b-2 border-slate-200">特性</th>
+                                    <th class="p-3 font-semibold border-b-2 border-slate-200"><code>mark3labs/mcp-go</code></th>
+                                    <th class="p-3 font-semibold border-b-2 border-slate-200"><code>ktr0731/go-mcp</code></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-200">
+                                    <td class="p-3 font-medium">核心设计</td>
+                                    <td class="p-3">简洁易用，“开箱即用”</td>
+                                    <td class="p-3">类型安全，编译时保障</td>
+                                </tr>
+                                <tr class="border-b border-slate-200">
+                                    <td class="p-3 font-medium">工具定义</td>
+                                    <td class="p-3">通过辅助函数动态定义</td>
+                                    <td class="p-3">通过结构体定义 + 代码生成</td>
+                                </tr>
+                                 <tr class="border-b border-slate-200">
+                                    <td class="p-3 font-medium">样板代码量</td>
+                                    <td class="p-3 text-green-600">非常低</td>
+                                    <td class="p-3 text-amber-600">较高</td>
+                                </tr>
+                                <tr class="border-b border-slate-200">
+                                    <td class="p-3 font-medium">最适用场景</td>
+                                    <td class="p-3">快速原型，简单工具</td>
+                                    <td class="p-3">生产级工具，复杂项目</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4">教程：构建 MCP 服务器</h3>
+                    <div class="border-b border-slate-200 mb-4">
+                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                            <button class="tab-btn active" data-target="tutorial-1">教程一: 简单计算器 (mark3labs/mcp-go)</button>
+                            <button class="tab-btn" data-target="tutorial-2">教程二: 文件系统 (ktr0731/go-mcp)</button>
+                        </nav>
+                    </div>
+                    <div id="tutorial-1" class="tutorial-content active">
+                        <p class="mb-4">本教程展示 `mark3labs/mcp-go` 的简洁性，快速构建一个包含 `calculate` 工具的服务器。</p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">复制</button>
+<pre><code>package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/mark3labs/mcp-go/mcp"
+    "github.com/mark3labs/mcp-go/server"
+)
+
+func main() {
+    s := server.NewMCPServer("Go Calculator", "1.0.0")
+
+    calculatorTool := mcp.NewTool("calculate",
+        mcp.WithDescription("Perform arithmetic operations"),
+        mcp.WithString("operation",
+            mcp.Required(),
+            mcp.Description("The operation: add, subtract, multiply, divide"),
+            mcp.Enum("add", "subtract", "multiply", "divide"),
+        ),
+        mcp.WithNumber("x", mcp.Required()),
+        mcp.WithNumber("y", mcp.Required()),
+    )
+
+    s.AddTool(calculatorTool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+        op, _ := req.RequireString("operation")
+        x, _ := req.RequireFloat("x")
+        y, _ := req.RequireFloat("y")
+
+        var result float64
+        switch op {
+        case "add": result = x + y
+        case "subtract": result = x - y
+        case "multiply": result = x * y
+        case "divide":
+            if y == 0 {
+                return mcp.NewToolResultError("cannot divide by zero"), nil
+            }
+            result = x / y
+        }
+
+        return mcp.NewToolResultText(fmt.Sprintf("%.2f", result)), nil
+    })
+
+    log.Println("Calculator MCP server started...")
+    if err := server.ServeStdio(s); err != nil {
+        log.Fatalf("Server error: %v\n", err)
+    }
+}</code></pre>
+                        </div>
+                    </div>
+                    <div id="tutorial-2" class="tutorial-content hidden">
+                        <p class="mb-4">本教程展示 `ktr0731/go-mcp` 基于代码生成的工作流，构建一个类型安全的文件系统服务器。</p>
+                        <div class="code-block">
+                             <button class="copy-btn" onclick="copyCode(this)">复制</button>
+<pre><code>// 1. 定义 (cmd/mcpgen/main.go)
+def := &codegen.ServerDefinition{
+    Tools: codegen.Tool{
+        {
+            Name: "read_file",
+            InputSchema: struct {
+                Path string `json:"path"`
+            }{},
+        },
+        {
+            Name: "write_file",
+            InputSchema: struct {
+                Path    string `json:"path"`
+                Content string `json:"content"`
+            }{},
+        },
+    },
+}
+codegen.Generate(f, def, "server")
+
+// 2. 实现 (cmd/server/main.go)
+package main
+// ... imports
+
+type toolHandler struct{}
+
+func (h *toolHandler) HandleToolReadFile(ctx context.Context, req *ToolReadFileRequest) (*mcp.CallToolResult, error) {
+    content, err := ioutil.ReadFile(req.Path)
+    // ... error handling
+    return &mcp.CallToolResult{Content: mcp.CallToolContent{mcp.TextContent{Text: string(content)}}}, nil
+}
+
+func (h *toolHandler) HandleToolWriteFile(ctx context.Context, req *ToolWriteFileRequest) (*mcp.CallToolResult, error) {
+    err := ioutil.WriteFile(req.Path, []byte(req.Content), 0644)
+    // ... error handling
+    return &mcp.CallToolResult{Content: mcp.CallToolContent{mcp.TextContent{Text: "OK"}}}, nil
+}
+
+func main() {
+    handler := NewHandler(&toolHandler{})
+    ctx, listener, binder := mcp.NewStdioTransport(context.Background(), handler, nil)
+    log.Println("Filesystem MCP server started...")
+    srv, _ := jsonrpc2.Serve(ctx, listener, binder)
+    srv.Wait()
+}
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: Production -->
+            <section id="production" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold mb-4 text-sky-800">第五部分：高级主题与生产就绪</h2>
+                    <p class="text-slate-600 leading-relaxed">掌握了基础开发后，我们必须将目光投向真实世界的挑战。本节将通过可展开的模块，探讨如何构建健壮、安全、可扩展的 MCP 应用。我们将深入研究安全最佳实践、设计健壮的错误处理策略，并讨论将应用从本地部署到生产环境所需的架构模式与监控方案。</p>
+                </div>
+                <div id="accordion" class="space-y-2">
+                    <!-- Accordion Item 1: Security -->
+                    <div class="accordion-item bg-white rounded-lg shadow-sm overflow-hidden">
+                        <div class="accordion-header p-4 flex justify-between items-center">
+                            <h3 class="text-lg font-semibold">🛡️ MCP 安全最佳实践</h3>
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-slate-200 text-slate-600 space-y-3">
+                                <p><strong>认证 (Authentication):</strong> 对于远程服务器，强制使用 OAuth 2.1，并配合 RFC 8707 资源标识符防止令牌滥用。</p>
+                                <p><strong>授权 (Authorization):</strong> 遵循最小权限原则，并在服务器业务逻辑中实现细粒度的访问控制 (RBAC)。</p>
+                                <p><strong>输入验证:</strong> 永不信任来自 LLM 的输入。严格验证和净化文件路径以防路径遍历，使用 `os/exec` 的参数化调用以防命令注入。</p>
+                                <p><strong>困惑的代理人问题:</strong> 通过严格输入验证和在主机端对敏感操作进行明确的用户二次确认来缓解。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Accordion Item 2: Error Handling -->
+                    <div class="accordion-item bg-white rounded-lg shadow-sm overflow-hidden">
+                        <div class="accordion-header p-4 flex justify-between items-center">
+                             <h3 class="text-lg font-semibold">⚠️ 错误处理策略</h3>
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-slate-200 text-slate-600 space-y-3">
+                                <p><strong>区分错误类型:</strong> 必须严格区分协议错误（如 JSON-RPC 格式错误）和工具执行错误（如 API 调用失败）。</p>
+                                <p><strong>正确的工具错误返回:</strong> 对于工具执行错误，应返回一个成功的协议响应（HTTP 200），但在 `result` 对象中将 `isError` 设为 `true` 并提供对 LLM 友好的错误描述。这能让 LLM 理解失败原因并尝试自我修正。</p>
+                                <p><strong>重试与超时:</strong> 客户端应实现指数退避重试逻辑；服务器必须为长时间运行的工具设置合理超时。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Accordion Item 3: Deployment -->
+                    <div class="accordion-item bg-white rounded-lg shadow-sm overflow-hidden">
+                        <div class="accordion-header p-4 flex justify-between items-center">
+                             <h3 class="text-lg font-semibold">🚀 迈向生产环境</h3>
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-slate-200 text-slate-600 space-y-3">
+                                <p><strong>架构模式:</strong> 将 Go 服务器容器化 (Docker)；在集群前部署 API 网关来统一处理 TLS、认证、负载均衡和速率限制；引入服务注册与发现（如 Consul）以支持大规模部署。</p>
+                                <p><strong>监控与可观测性:</strong> 使用 Prometheus 等工具，通过中间件采集关键指标，包括协议指标（QPS, 错误率）、工具执行指标（延迟, 错误率）和系统指标（CPU, 内存, Go 运行时）。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentSections = document.querySelectorAll('.content-section');
+            const tutorialTabs = document.querySelectorAll('.tab-btn');
+            const tutorialContents = document.querySelectorAll('.tutorial-content');
+            const architectureBoxes = document.querySelectorAll('.architecture-box');
+            const architectureInfo = document.getElementById('architecture-info');
+            const primitiveCards = document.querySelectorAll('.primitive-card');
+            const accordionItems = document.querySelectorAll('.accordion-item');
+
+            // Main navigation
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const targetId = item.dataset.target;
+
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+
+                    contentSections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === targetId) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Tutorial tabs
+            tutorialTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.dataset.target;
+                    
+                    tutorialTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    tutorialContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                        if (content.id === targetId) {
+                            content.classList.remove('hidden');
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Architecture Diagram
+            const infoContents = {};
+            document.querySelectorAll('[id$="-info"]').forEach(el => {
+                if (el.id !== 'architecture-info') {
+                   infoContents[el.id] = el.innerHTML;
+                }
+            });
+
+            architectureBoxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    const targetId = box.dataset.target;
+                    architectureBoxes.forEach(b => b.classList.remove('active'));
+                    box.classList.add('active');
+                    architectureInfo.innerHTML = infoContents[targetId];
+                });
+            });
+
+            // Primitive Cards
+            primitiveCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    card.classList.toggle('bg-sky-100');
+                    const content = card.querySelector('.primitive-content');
+                    content.classList.toggle('hidden');
+                });
+            });
+            
+            // Accordion
+            accordionItems.forEach(item => {
+                const header = item.querySelector('.accordion-header');
+                header.addEventListener('click', () => {
+                    // Close other items
+                    accordionItems.forEach(otherItem => {
+                        if (otherItem !== item) {
+                            otherItem.classList.remove('open');
+                        }
+                    });
+                    // Toggle current item
+                    item.classList.toggle('open');
+                });
+            });
+
+
+            // Chart.js Evolution Timeline
+            const versionData = {
+                '2024-11-05': {
+                    title: '版本 2024-11-05: 初始稳定版',
+                    features: '定义了核心的“主机-客户端-服务器”架构、JSON-RPC 基础，以及 `工具`、`资源`、`提示` 和 `采样` 等核心原语。',
+                    breaking: '无 (初始版本)。'
+                },
+                '2025-03-26': {
+                    title: '版本 2025-03-26: 安全与功能增强',
+                    features: '引入了全面的 <strong>OAuth 2.1</strong> 授权框架。增加了工具注解（如 `readOnly`）、音频内容支持和 JSON-RPC 批量请求。',
+                    breaking: '<strong>以新的“可流式 HTTP”传输取代了原有的 `HTTP+SSE` 传输</strong>。这对远程服务器的实现者来说是一个重大的破坏性变更。'
+                },
+                '2025-06-18': {
+                    title: '版本 2025-06-18: 安全强化与简化',
+                    features: '进一步强化 OAuth 安全性，强制要求客户端实现 <strong>RFC 8707 资源标识符</strong>。增加了结构化工具输出和服务器端启发。',
+                    breaking: '<strong>移除了 JSON-RPC 批量请求支持</strong>。这是对上一版本变更的回滚，旨在简化服务器端的实现复杂性。'
+                }
+            };
+
+            const ctx = document.getElementById('evolutionChart').getContext('2d');
+            const evolutionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(versionData),
+                    datasets: [{
+                        label: 'MCP 规范演进',
+                        data: [1, 2, 3], 
+                        borderColor: '#0ea5e9', // sky-500
+                        backgroundColor: '#7dd3fc', // sky-300
+                        fill: false,
+                        pointRadius: 8,
+                        pointHoverRadius: 12,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                           display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            display: false,
+                            beginAtZero: true
+                        },
+                        x: {
+                           grid: {
+                                display: false
+                           }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const chartElement = elements[0];
+                            const index = chartElement.index;
+                            const version = evolutionChart.data.labels[index];
+                            const details = versionData[version];
+                            
+                            const detailsContainer = document.getElementById('version-details');
+                            detailsContainer.innerHTML = `
+                                <h4 class="font-bold text-lg mb-2 text-sky-900">${details.title}</h4>
+                                <p class="mb-2"><strong class="font-semibold text-slate-700">主要特性:</strong> ${details.features}</p>
+                                <p class="text-red-600"><strong class="font-semibold text-red-700">破坏性变更:</strong> ${details.breaking}</p>
+                            `;
+                        }
+                    }
+                }
+            });
+        });
+
+        // Copy code utility
+        function copyCode(button) {
+            const pre = button.nextElementSibling;
+            const code = pre.querySelector('code');
+            const text = code.innerText;
+            
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                button.innerText = '已复制!';
+                setTimeout(() => {
+                    button.innerText = '复制';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+    </script>
+</body>
+</html>
+
