@@ -23,7 +23,7 @@ jobs:
           python-version: '3.10'
 
       - name: Run script to generate index.html
-        run: python generate_index.py
+        run: python generate_homepage.py
 
       - name: Commit and push if changed
         run: |
