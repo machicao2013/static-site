@@ -1,151 +1,470 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网站目录</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>网站首页</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #11161d;
+      --panel-2: #171d25;
+      --line: #303843;
+      --line-2: #3a4554;
+      --ink: #e8edf2;
+      --muted: #9aa5b1;
+      --gold: #f1c75b;
+      --gold-soft: rgba(241, 199, 91, 0.12);
+      --green: #94c973;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(255,255,255,0.025) 50%, transparent 50%),
+        var(--bg);
+      background-size: 100% 4px;
+      font-family: "SF Mono", Menlo, Consolas, "Noto Sans SC", monospace;
+      line-height: 1.5;
+    }
+    button,
+    input {
+      font: inherit;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .shell {
+      width: min(1360px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+    .topbar {
+      min-height: 42px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      background: #0a0e13;
+      padding: 10px 14px;
+    }
+    .prompt {
+      color: var(--green);
+    }
+    .layout {
+      min-height: calc(100vh - 110px);
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+      border: 1px solid var(--line);
+      border-top: 0;
+      background: var(--panel);
+      box-shadow: 0 26px 90px rgba(0, 0, 0, 0.38);
+    }
+    aside {
+      padding: 20px;
+      border-right: 1px solid var(--line);
+      background: #0d1117;
+    }
+    main {
+      min-width: 0;
+      padding: 22px;
+    }
+    .label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    h1,
+    h2 {
+      margin: 8px 0 16px;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+    h1 {
+      font-size: 1.4rem;
+    }
+    h2 {
+      max-width: 900px;
+      font-size: clamp(2rem, 4vw, 4.8rem);
+      color: #f7f4e8;
+    }
+    .cat-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .cat {
+      min-height: 46px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+      border-bottom-color: #2c3440;
+      background: transparent;
+      color: #dce4ec;
+      padding: 9px 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .cat:hover {
+      color: var(--gold);
+      background: rgba(255,255,255,0.035);
+    }
+    .cat[aria-pressed="true"] {
+      border-color: var(--gold);
+      background: #202832;
+      color: var(--gold);
+      box-shadow: inset 3px 0 0 var(--gold);
+    }
+    .summary {
+      margin-top: 24px;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .summary b {
+      color: var(--ink);
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin: 22px 0;
+    }
+    .search {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid var(--line-2);
+      background: #0d1117;
+      color: var(--ink);
+      padding: 0 14px;
+      outline: 0;
+    }
+    .search:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-soft);
+    }
+    .count {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .results {
+      display: grid;
+      gap: 9px;
+    }
+    .result {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 18px;
+      align-items: center;
+      min-height: 64px;
+      padding: 12px 14px;
+      border: 1px solid #2f3946;
+      background: var(--panel-2);
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .result.is-hidden {
+      display: none;
+    }
+    .result:hover {
+      border-color: var(--gold);
+      background: #202832;
+      transform: translateX(3px);
+    }
+    .result strong {
+      display: block;
+      color: var(--gold);
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+    .result small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      word-break: break-word;
+    }
+    .tag,
+    time {
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: 0.88rem;
+    }
+    .empty {
+      display: none;
+      border: 1px dashed var(--line-2);
+      color: var(--muted);
+      padding: 22px;
+      background: rgba(255,255,255,0.025);
+    }
+    .empty.show {
+      display: block;
+    }
+    @media (max-width: 860px) {
+      .shell {
+        width: min(100% - 20px, 1360px);
+        padding-top: 10px;
+      }
+      .topbar,
+      .layout,
+      .toolbar,
+      .result {
+        grid-template-columns: 1fr;
+      }
+      .topbar {
+        display: grid;
+      }
+      aside {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      main {
+        padding: 16px;
+      }
+      .tag,
+      time {
+        white-space: normal;
+      }
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
-    <div class="container mx-auto max-w-3xl p-4 md:p-8">
-        <header class="text-center mb-10">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">网站内容索引</h1>
-            <p class="mt-2 text-slate-600">所有页面均按最后更新时间倒序排列。</p>
-        </header>
-        <div class="mb-8">
-            <input type="text" id="searchInput" placeholder="在此输入关键词进行搜索..." class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <span><span class="prompt">~/static-site-2</span> generate_homepage.py</span>
+      <span>5 dirs / 17 pages</span>
+    </header>
+    <div class="layout" data-active="ALL">
+      <aside>
+        <div class="label">directories</div>
+        <h1>site index</h1>
+        <div class="cat-list">
+        <button class="cat" type="button" aria-pressed="true" data-section="ALL">
+          <span>全部页面</span>
+          <span>17</span>
+        </button>
+        <button class="cat" type="button" aria-pressed="false" data-section="AI应用">
+          <span>AI应用</span>
+          <span>2</span>
+        </button>
+        <button class="cat" type="button" aria-pressed="false" data-section="IAP开发">
+          <span>IAP开发</span>
+          <span>4</span>
+        </button>
+        <button class="cat" type="button" aria-pressed="false" data-section="其他">
+          <span>其他</span>
+          <span>4</span>
+        </button>
+        <button class="cat" type="button" aria-pressed="false" data-section="股票基金">
+          <span>股票基金</span>
+          <span>3</span>
+        </button>
+        <button class="cat" type="button" aria-pressed="false" data-section="软件应用">
+          <span>软件应用</span>
+          <span>4</span>
+        </button>
         </div>
-        <main>
-            <div id="fileList" class="space-y-4">
-<ul class="space-y-3">
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="软件应用/github_action.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">软件应用/github_action.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="软件应用/cloudflare.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">软件应用/cloudflare.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="软件应用/proxy.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">软件应用/proxy.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="软件应用/qiwei_assist.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">软件应用/qiwei_assist.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="IAP开发/aca_report.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">IAP开发/aca_report.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="IAP开发/iap_safety_v2.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">IAP开发/iap_safety_v2.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="IAP开发/iap_safety.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">IAP开发/iap_safety.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="IAP开发/sk1_vs_sk2.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">IAP开发/sk1_vs_sk2.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="AI应用/google-prompt-engineer.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">AI应用/google-prompt-engineer.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="AI应用/mcp.go.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">AI应用/mcp.go.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="其他/english.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">其他/english.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="其他/pricing.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">其他/pricing.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="其他/7days.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">其他/7days.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="其他/platform-report-101-20260318.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">其他/platform-report-101-20260318.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="股票基金/hk_quant_advisor.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">股票基金/hk_quant_advisor.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="股票基金/xueqiu-daily-2026-05-10.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">股票基金/xueqiu-daily-2026-05-10.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-                <li class="file-item bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <a href="股票基金/vix_sp500_mobile_report.html" class="flex justify-between items-center">
-                        <span class="file-name text-lg font-medium text-sky-700 hover:text-sky-600">股票基金/vix_sp500_mobile_report.html</span>
-                        <span class="text-sm text-slate-500">2026-05-11</span>
-                    </a>
-                </li>
-</ul>
-            </div>
-        </main>
-        <footer class="text-center mt-12 py-4 border-t">
-            <p class="text-sm text-slate-500">索引由 GitHub Actions 自动生成</p>
-        </footer>
+        <div class="summary">
+          <span><b>5</b> 个目录</span>
+          <span><b>17</b> 个页面</span>
+          <span>左侧筛选，右侧直接打开页面。</span>
+        </div>
+      </aside>
+      <main>
+        <div class="label">terminal mode</div>
+        <h2>Open a report, guide, or tool.</h2>
+        <div class="toolbar">
+          <input class="search" type="search" placeholder="搜索标题、路径或分类" aria-label="搜索标题、路径或分类">
+          <span class="count"></span>
+        </div>
+        <div class="results">
+        <a class="result" href="AI应用/google-prompt-engineer.html" data-section="AI应用" data-text="google vertex ai 提示工程权威指南 ai应用/google-prompt-engineer.html ai应用">
+          <span>
+            <strong>01 Google Vertex AI 提示工程权威指南</strong>
+            <small>AI应用/google-prompt-engineer.html</small>
+          </span>
+          <span class="tag">AI应用</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="AI应用/mcp.go.html" data-section="AI应用" data-text="交互式 mcp golang 开发学习指南 ai应用/mcp.go.html ai应用">
+          <span>
+            <strong>02 交互式 MCP Golang 开发学习指南</strong>
+            <small>AI应用/mcp.go.html</small>
+          </span>
+          <span class="tag">AI应用</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="IAP开发/iap_safety.html" data-section="IAP开发" data-text="ios iap 黑产攻防研究报告 iap开发/iap_safety.html iap开发">
+          <span>
+            <strong>03 iOS IAP 黑产攻防研究报告</strong>
+            <small>IAP开发/iap_safety.html</small>
+          </span>
+          <span class="tag">IAP开发</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="IAP开发/iap_safety_v2.html" data-section="IAP开发" data-text="ios iap 黑产攻防研究报告 iap开发/iap_safety_v2.html iap开发">
+          <span>
+            <strong>04 iOS IAP 黑产攻防研究报告</strong>
+            <small>IAP开发/iap_safety_v2.html</small>
+          </span>
+          <span class="tag">IAP开发</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="IAP开发/sk1_vs_sk2.html" data-section="IAP开发" data-text="storekit 1 vs storekit 2 深度技术对比报告 iap开发/sk1_vs_sk2.html iap开发">
+          <span>
+            <strong>05 StoreKit 1 vs StoreKit 2 深度技术对比报告</strong>
+            <small>IAP开发/sk1_vs_sk2.html</small>
+          </span>
+          <span class="tag">IAP开发</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="IAP开发/aca_report.html" data-section="IAP开发" data-text="苹果 aca 深度调研报告：直播与订阅类应用商业化战略 iap开发/aca_report.html iap开发">
+          <span>
+            <strong>06 苹果 ACA 深度调研报告：直播与订阅类应用商业化战略</strong>
+            <small>IAP开发/aca_report.html</small>
+          </span>
+          <span class="tag">IAP开发</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="其他/platform-report-101-20260318.html" data-section="其他" data-text="k歌平台风控分析报告 - 2026-03-11 ~ 2026-03-17 其他/platform-report-101-20260318.html 其他">
+          <span>
+            <strong>07 K歌平台风控分析报告 - 2026-03-11 ~ 2026-03-17</strong>
+            <small>其他/platform-report-101-20260318.html</small>
+          </span>
+          <span class="tag">其他</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="其他/7days.html" data-section="其他" data-text="七天语音冒险：英文字母发音大师养成指南 其他/7days.html 其他">
+          <span>
+            <strong>08 七天语音冒险：英文字母发音大师养成指南</strong>
+            <small>其他/7days.html</small>
+          </span>
+          <span class="tag">其他</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="其他/english.html" data-section="其他" data-text="交互式英语发音健身房 其他/english.html 其他">
+          <span>
+            <strong>09 交互式英语发音健身房</strong>
+            <small>其他/english.html</small>
+          </span>
+          <span class="tag">其他</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="其他/pricing.html" data-section="其他" data-text="售价计算器 其他/pricing.html 其他">
+          <span>
+            <strong>10 售价计算器</strong>
+            <small>其他/pricing.html</small>
+          </span>
+          <span class="tag">其他</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="股票基金/vix_sp500_mobile_report.html" data-section="股票基金" data-text="vix指数与标普500指数关系深度研究报告 股票基金/vix_sp500_mobile_report.html 股票基金">
+          <span>
+            <strong>11 VIX指数与标普500指数关系深度研究报告</strong>
+            <small>股票基金/vix_sp500_mobile_report.html</small>
+          </span>
+          <span class="tag">股票基金</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="股票基金/hk_quant_advisor.html" data-section="股票基金" data-text="港股专业量化交易决策顾问 | skill website 股票基金/hk_quant_advisor.html 股票基金">
+          <span>
+            <strong>12 港股专业量化交易决策顾问 | Skill Website</strong>
+            <small>股票基金/hk_quant_advisor.html</small>
+          </span>
+          <span class="tag">股票基金</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="股票基金/xueqiu-daily-2026-05-10.html" data-section="股票基金" data-text="雪球关注用户最近发言速览 | 2026-05-10 股票基金/xueqiu-daily-2026-05-10.html 股票基金">
+          <span>
+            <strong>13 雪球关注用户最近发言速览 | 2026-05-10</strong>
+            <small>股票基金/xueqiu-daily-2026-05-10.html</small>
+          </span>
+          <span class="tag">股票基金</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="软件应用/github_action.html" data-section="软件应用" data-text="交互式 github actions 索引页生成器 软件应用/github_action.html 软件应用">
+          <span>
+            <strong>14 交互式 GitHub Actions 索引页生成器</strong>
+            <small>软件应用/github_action.html</small>
+          </span>
+          <span class="tag">软件应用</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="软件应用/cloudflare.html" data-section="软件应用" data-text="交互式教程：cloudflare containers 从入门到精通 软件应用/cloudflare.html 软件应用">
+          <span>
+            <strong>15 交互式教程：Cloudflare Containers 从入门到精通</strong>
+            <small>软件应用/cloudflare.html</small>
+          </span>
+          <span class="tag">软件应用</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="软件应用/qiwei_assist.html" data-section="软件应用" data-text="企业微信 ai 助理 - 交互式指南 软件应用/qiwei_assist.html 软件应用">
+          <span>
+            <strong>16 企业微信 AI 助理 - 交互式指南</strong>
+            <small>软件应用/qiwei_assist.html</small>
+          </span>
+          <span class="tag">软件应用</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        <a class="result" href="软件应用/proxy.html" data-section="软件应用" data-text="现代代理协议交互式指南 软件应用/proxy.html 软件应用">
+          <span>
+            <strong>17 现代代理协议交互式指南</strong>
+            <small>软件应用/proxy.html</small>
+          </span>
+          <span class="tag">软件应用</span>
+          <time datetime="2026-05-11">2026-05-11</time>
+        </a>
+        </div>
+        <p class="empty">没有匹配的页面。</p>
+      </main>
     </div>
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const fileList = document.getElementById('fileList');
-        const items = fileList.getElementsByClassName('file-item');
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                const fileName = item.querySelector('.file-name').textContent.toLowerCase();
-                if (fileName.includes(searchTerm)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
-            }
-        });
-    </script>
+  </div>
+  <script>
+    const layout = document.querySelector(".layout");
+    const search = document.querySelector(".search");
+    const count = document.querySelector(".count");
+    const empty = document.querySelector(".empty");
+    const cats = Array.from(document.querySelectorAll(".cat"));
+    const items = Array.from(document.querySelectorAll(".result"));
+    const total = items.length;
+
+    function applyFilters() {
+      const active = layout.dataset.active;
+      const query = search.value.trim().toLowerCase();
+      let visible = 0;
+
+      for (const item of items) {
+        const sectionMatch = active === "ALL" || item.dataset.section === active;
+        const queryMatch = !query || item.dataset.text.includes(query);
+        const show = sectionMatch && queryMatch;
+        item.classList.toggle("is-hidden", !show);
+        if (show) visible += 1;
+      }
+
+      count.textContent = `${visible} / ${total} pages`;
+      empty.classList.toggle("show", visible === 0);
+    }
+
+    for (const cat of cats) {
+      cat.addEventListener("click", () => {
+        layout.dataset.active = cat.dataset.section;
+        for (const item of cats) item.setAttribute("aria-pressed", "false");
+        cat.setAttribute("aria-pressed", "true");
+        applyFilters();
+      });
+    }
+
+    search.addEventListener("input", applyFilters);
+    applyFilters();
+  </script>
 </body>
 </html>
