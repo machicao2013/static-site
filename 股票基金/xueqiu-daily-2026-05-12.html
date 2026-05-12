@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>雪球关注用户最近发言速览 | 2026-05-12</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #606976;
+      --line: #d8d1c4;
+      --paper: #f4efe6;
+      --panel: #fffdf8;
+      --coal: #252525;
+      --red: #b1272f;
+      --green: #187c55;
+      --blue: #22577a;
+      --gold: #b7791f;
+      --shadow: 0 22px 70px rgba(33, 29, 23, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23, 23, 23, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(23, 23, 23, 0.03) 1px, transparent 1px),
+        var(--paper);
+      background-size: 34px 34px;
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+      line-height: 1.64;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 30px 0 54px;
+    }
+
+    .sheet {
+      overflow: hidden;
+      background: rgba(255, 253, 248, 0.96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 28px;
+      padding: 34px 38px 30px;
+      border-bottom: 3px double var(--coal);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--red);
+      font: 800 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(34px, 5.6vw, 68px);
+      line-height: 1.04;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .dek {
+      max-width: 800px;
+      margin: 16px 0 0;
+      color: #30343b;
+      font-size: 18px;
+    }
+
+    .stamp {
+      align-self: start;
+      padding: 18px 18px 20px;
+      background: #f8f1e2;
+      border-left: 7px solid var(--gold);
+    }
+
+    .stamp b {
+      display: block;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .stamp span {
+      display: block;
+      margin-top: 8px;
+      color: #525760;
+      font-size: 13px;
+    }
+
+    .ticker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding: 15px 38px;
+      border-bottom: 1px solid var(--line);
+      background: #fbf8f0;
+      font: 700 13px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .ticker span {
+      padding-right: 14px;
+      border-right: 1px solid var(--line);
+      color: #343941;
+    }
+
+    .ticker span:last-child { border-right: 0; }
+
+    section {
+      padding: 30px 38px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child { border-bottom: 0; }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .section-head code {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .lead-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+    }
+
+    .brief {
+      padding: 24px;
+      color: #fffdf8;
+      background: var(--coal);
+    }
+
+    .brief h2 {
+      margin-bottom: 12px;
+      font-size: 31px;
+    }
+
+    .brief p {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .signal-list li {
+      padding: 14px 16px;
+      background: #f9f6ef;
+      border: 1px solid var(--line);
+    }
+
+    .signal-list b { color: var(--red); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      min-height: 330px;
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+      color: #59606b;
+      font: 700 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .pill {
+      padding: 4px 7px;
+      background: #f1eee6;
+      border: 1px solid #ded7ca;
+      border-radius: 999px;
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .card ul,
+    .matrix ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .card li,
+    .matrix li { margin: 8px 0; }
+
+    .quote {
+      margin-top: 14px;
+      padding: 11px 12px;
+      color: #30343b;
+      background: #f7faf8;
+      border-left: 4px solid var(--green);
+      font-size: 14px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .matrix article {
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .matrix h3 {
+      margin: 0 0 10px;
+      font-size: 19px;
+    }
+
+    .table {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: #fff;
+      background: #2e3137;
+      font: 800 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .note {
+      color: #555d69;
+      font-size: 14px;
+    }
+
+    .sources {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: 15px;
+    }
+
+    footer {
+      padding: 20px 38px 26px;
+      color: #686f7a;
+      background: #fbf8f0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      header,
+      .lead-grid,
+      .matrix,
+      .sources { grid-template-columns: 1fr; }
+
+      .cards { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100vw - 18px, 1180px); padding-top: 12px; }
+      header,
+      section,
+      .ticker,
+      footer {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .cards { grid-template-columns: 1fr; }
+      .card { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <article class="sheet">
+      <header>
+        <div>
+          <p class="eyebrow">Xueqiu Daily Brief / 2026-05-12</p>
+          <h1>雪球关注用户最近一天发言速览</h1>
+          <p class="dek">基于浏览器可见时间线抓取 4 位雪球用户主页，过滤置顶与明显过期内容后，提炼最近发言中的投资叙事、情绪和可跟踪线索。</p>
+        </div>
+        <aside class="stamp">
+          <b>抓取时间</b>
+          <span>2026-05-12 09:31，北京时间</span>
+          <span>范围以雪球页面相对时间为准；未登录态下部分长文折叠，摘要仅覆盖本次可见内容。</span>
+        </aside>
+      </header>
+
+      <div class="ticker">
+        <span>AI 存储</span>
+        <span>加密资产周期</span>
+        <span>Circle / USDC</span>
+        <span>AI 基建压力测试</span>
+        <span>更新缺口</span>
+      </div>
+
+      <section>
+        <div class="lead-grid">
+          <div class="brief">
+            <h2>核心判断</h2>
+            <p>今天的主线从“AI 硬件扩散”进一步分化：但斌仍围绕 AI 基建、CPU、存储与反方观点做信息转发；钟本聪则把注意力从 AI 存储延伸到加密资产和 Circle，认为稳定币与链上交易可能进入新周期。梁宏和大道今天没有新的可见投资观点。</p>
+          </div>
+          <ul class="signal-list">
+            <li><b>新叙事：</b>钟本聪明确提出“AI 存储之后，会是加密资产的一轮超级周期”，Circle 成为观察核心。</li>
+            <li><b>估值冷却：</b>同一用户也提示存储龙头存在估值透支、行情提前兑现和扩产后供需缓和的风险。</li>
+            <li><b>但斌线索：</b>继续转发 AI 基建文章、美光深度研究、中国汽车出口、人民币升值，同时强调兼听反方观点。</li>
+            <li><b>空白信号：</b>梁宏最新可见仍停在 05-09，大道最新可见仍停在 05-10，不把旧帖硬解读为今日观点。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>用户观点卡片</h2>
+          <code>latest timeline synthesis</code>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/1102105103">但斌</a></h3>
+            <div class="meta"><span class="pill">AI 基建</span><span class="pill">兼听反方</span></div>
+            <p>今天可见内容较少，最新是转发财经早餐；核心仍是昨日《港湾观点》后的延续讨论：CPU、智能体迭代、广告业态重构、AI 基建与应用共生。同时他专门发布视频表达喜欢转相反观点。</p>
+            <ul>
+              <li>继续把 CPU、AI 应用、算力配比放在同一套产业逻辑里。</li>
+              <li>转发美光、HBM、DRAM 超周期研究，以及中国汽车出口、人民币升值等宏观线索。</li>
+              <li>“兼听则明”是今天最重要的风险控制表述，说明强多头也在主动纳入反证。</li>
+            </ul>
+            <div class="quote">短证据：财经早餐、CPU 需求、兼听反方、美光与 HBM。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/8586152406">钟本聪 Dylan</a></h3>
+            <div class="meta"><span class="pill">加密资产</span><span class="pill">Circle</span><span class="pill">存储降温</span></div>
+            <p>今天观点最强。他从 AI 存储切到加密资产，认为稳定币已是主流，Circle/USDC 的交易活跃度、监管确定性和链上交易额值得重估。同时提醒存储行情已经明显提前兑现。</p>
+            <ul>
+              <li>提出“AI 存储之后”可能进入加密资产周期，Circle 是主要标的线索。</li>
+              <li>引用 Circle 一季报、USDC 流通量和链上交易额，强调稳定币商业模式和监管框架。</li>
+              <li>对泡泡玛特转向组织效率讨论，认为王宁应把“公司”这个产品打造好。</li>
+            </ul>
+            <div class="quote">短证据：Circle、稳定币、链上交易、存储估值透支、组织效率。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/9887656769">梁宏</a></h3>
+            <div class="meta"><span class="pill">无今日新帖</span><span class="pill">旧框架延续</span></div>
+            <p>今天可见页面没有 05-12 新发言。最近仍是 05-09 的海南工作与“股票、掼蛋双火”轻量表达；更早的实质观点仍围绕 NAND、存储周期、能源多元化和中国优势产业。</p>
+            <ul>
+              <li>不能把 05-09 的轻量表达扩展为今日行业判断。</li>
+              <li>旧框架中最清楚的仍是 NAND 优于 DRAM、token 需求拉动存储、AI 带来稳定能源需求。</li>
+              <li>后续需要等新帖确认其对存储估值和周期阶段的判断是否变化。</li>
+            </ul>
+            <div class="quote">短证据：05-09 后未见新实质观点；NAND、能源、周期是旧主线。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/1247347556">大道无形我有型</a></h3>
+            <div class="meta"><span class="pill">低更新</span><span class="pill">方法论旧线</span></div>
+            <p>今天没有新发言。最新可见仍是 05-10 围绕“知行合一”的回复：行为是认知的外显，情绪或犹豫背后是还没有真正知道。更早内容继续围绕泡泡玛特、OPPO 文案和机会成本。</p>
+            <ul>
+              <li>今天不能继续扩写其泡泡玛特或茅台立场，只能标注旧线索仍有效。</li>
+              <li>“你在行的就是你知的”仍是最近最清晰的方法论表达。</li>
+              <li>泡泡玛特旧线索从个股观点延伸到企业家、组织、机会成本与现金流。</li>
+            </ul>
+            <div class="quote">短证据：05-10 知行合一；05-08 机会成本与现金流旧线索。</div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>交叉主题</h2>
+          <code>where views overlap</code>
+        </div>
+        <div class="matrix">
+          <article>
+            <h3>AI 叙事进入分叉</h3>
+            <ul>
+              <li>但斌继续沿 AI 基建、CPU、存储和应用共生展开。</li>
+              <li>钟本聪则提醒存储估值透支，并把下一阶段资金想象力投向加密资产。</li>
+              <li>这意味着 AI 主线内部已经出现“硬件继续兑现”与“寻找下一波外溢资产”的分歧。</li>
+            </ul>
+          </article>
+          <article>
+            <h3>稳定币进入观察清单</h3>
+            <ul>
+              <li>Circle/USDC 被钟本聪放到 AI 应用基础设施之后的超级周期叙事里。</li>
+              <li>讨论重点不是币价，而是合规护城河、链上交易额、交易活跃度和美元体系延伸。</li>
+              <li>这是今天最值得新增跟踪的主题。</li>
+            </ul>
+          </article>
+          <article>
+            <h3>强叙事需要反证</h3>
+            <ul>
+              <li>但斌主动强调转相反观点，钟本聪也提示存储板块不能永远单边上涨。</li>
+              <li>两者共同指向一个状态：热门资产仍有空间想象，但估值和周期位置需要反复校验。</li>
+              <li>后续跟踪应把业绩、监管、扩产和流动性放到同一张表里看。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>跟踪清单</h2>
+          <code>next signals to watch</code>
+        </div>
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th>线索</th>
+                <th>为什么重要</th>
+                <th>下一步观察</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Circle 与稳定币周期</td>
+                <td>钟本聪把它放到“AI 存储之后”的新周期位置，且引用监管和一季报数据作支撑。</td>
+                <td>跟踪 USDC 流通量、链上交易额、监管法案进展、Circle 营收质量和市场估值变化。</td>
+              </tr>
+              <tr>
+                <td>AI 存储估值兑现</td>
+                <td>同一条 AI 主线里开始出现“长期紧缺但短期透支”的判断，说明资金可能开始分层。</td>
+                <td>看存储龙头扩产、价格曲线、毛利率和美光等个股估值是否继续被上修。</td>
+              </tr>
+              <tr>
+                <td>但斌的反方观点吸收</td>
+                <td>“兼听则明”会影响他信息流的风险控制方式，也影响关注者对 AI 牛市的理解。</td>
+                <td>观察后续反方材料是停留在内容转发，还是转化为仓位、行业或估值层面的判断。</td>
+              </tr>
+              <tr>
+                <td>梁宏 / 大道更新缺口</td>
+                <td>两位今天缺少新观点，旧框架不能机械外推成今日信号。</td>
+                <td>等待新帖后再对照：梁宏是否调整存储周期，大道是否继续展开泡泡玛特组织和机会成本。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>来源与边界</h2>
+          <code>method note</code>
+        </div>
+        <ul class="sources">
+          <li><a href="https://xueqiu.com/u/1102105103">但斌 - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/8586152406">钟本聪 Dylan - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/9887656769">梁宏 - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/1247347556">大道无形我有型 - 雪球主页</a></li>
+        </ul>
+        <p class="note">说明：本页为信息整理，不构成投资建议。雪球页面存在懒加载、折叠正文、相对时间显示和登录态差异；摘要以本次抓取可见内容为依据，避免复刻长篇原文。</p>
+      </section>
+
+      <footer>
+        生成日期：2026-05-12。单页 HTML 报告，适合直接发布到静态站点或 GitHub Pages。
+      </footer>
+    </article>
+  </main>
+</body>
+</html>

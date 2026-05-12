@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>雪球关注用户最近发言速览 | 2026-05-11</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #606976;
+      --line: #d8d1c4;
+      --paper: #f4efe6;
+      --panel: #fffdf8;
+      --coal: #252525;
+      --red: #b1272f;
+      --green: #187c55;
+      --blue: #22577a;
+      --gold: #b7791f;
+      --shadow: 0 22px 70px rgba(33, 29, 23, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23, 23, 23, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(23, 23, 23, 0.03) 1px, transparent 1px),
+        var(--paper);
+      background-size: 34px 34px;
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+      line-height: 1.64;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 30px 0 54px;
+    }
+
+    .sheet {
+      overflow: hidden;
+      background: rgba(255, 253, 248, 0.96);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 28px;
+      padding: 34px 38px 30px;
+      border-bottom: 3px double var(--coal);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--red);
+      font: 800 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(34px, 5.6vw, 68px);
+      line-height: 1.04;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .dek {
+      max-width: 800px;
+      margin: 16px 0 0;
+      color: #30343b;
+      font-size: 18px;
+    }
+
+    .stamp {
+      align-self: start;
+      padding: 18px 18px 20px;
+      background: #f8f1e2;
+      border-left: 7px solid var(--gold);
+    }
+
+    .stamp b {
+      display: block;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .stamp span {
+      display: block;
+      margin-top: 8px;
+      color: #525760;
+      font-size: 13px;
+    }
+
+    .ticker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      padding: 15px 38px;
+      border-bottom: 1px solid var(--line);
+      background: #fbf8f0;
+      font: 700 13px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .ticker span {
+      padding-right: 14px;
+      border-right: 1px solid var(--line);
+      color: #343941;
+    }
+
+    .ticker span:last-child { border-right: 0; }
+
+    section {
+      padding: 30px 38px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section:last-child { border-bottom: 0; }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .section-head code {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .lead-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+    }
+
+    .brief {
+      padding: 24px;
+      color: #fffdf8;
+      background: var(--coal);
+    }
+
+    .brief h2 {
+      margin-bottom: 12px;
+      font-size: 31px;
+    }
+
+    .brief p {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .signal-list li {
+      padding: 14px 16px;
+      background: #f9f6ef;
+      border: 1px solid var(--line);
+    }
+
+    .signal-list b { color: var(--red); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      min-height: 330px;
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+      color: #59606b;
+      font: 700 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .pill {
+      padding: 4px 7px;
+      background: #f1eee6;
+      border: 1px solid #ded7ca;
+      border-radius: 999px;
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+
+    .card ul,
+    .matrix ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .card li,
+    .matrix li { margin: 8px 0; }
+
+    .quote {
+      margin-top: 14px;
+      padding: 11px 12px;
+      color: #30343b;
+      background: #f7faf8;
+      border-left: 4px solid var(--green);
+      font-size: 14px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .matrix article {
+      padding: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .matrix h3 {
+      margin: 0 0 10px;
+      font-size: 19px;
+    }
+
+    .table {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      color: #fff;
+      background: #2e3137;
+      font: 800 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .note {
+      color: #555d69;
+      font-size: 14px;
+    }
+
+    .sources {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: 15px;
+    }
+
+    footer {
+      padding: 20px 38px 26px;
+      color: #686f7a;
+      background: #fbf8f0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      header,
+      .lead-grid,
+      .matrix,
+      .sources { grid-template-columns: 1fr; }
+
+      .cards { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100vw - 18px, 1180px); padding-top: 12px; }
+      header,
+      section,
+      .ticker,
+      footer {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .cards { grid-template-columns: 1fr; }
+      .card { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <article class="sheet">
+      <header>
+        <div>
+          <p class="eyebrow">Xueqiu Daily Brief / 2026-05-11</p>
+          <h1>雪球关注用户最近一天发言速览</h1>
+          <p class="dek">基于浏览器可见时间线抓取 4 位雪球用户主页，过滤置顶与明显过期内容后，提炼最近发言中的投资叙事、情绪和可跟踪线索。</p>
+        </div>
+        <aside class="stamp">
+          <b>抓取时间</b>
+          <span>2026-05-11 19:24，北京时间</span>
+          <span>范围以雪球页面相对时间为准；未登录态下部分长文折叠，摘要仅覆盖本次可见内容。</span>
+        </aside>
+      </header>
+
+      <div class="ticker">
+        <span>AI / CPU</span>
+        <span>万亿美元资本开支</span>
+        <span>泡泡玛特电话会</span>
+        <span>Circle / 稳定币</span>
+        <span>知行合一</span>
+      </div>
+
+      <section>
+        <div class="lead-grid">
+          <div class="brief">
+            <h2>核心判断</h2>
+            <p>今天的风险偏好仍然围绕 AI 扩散展开，但焦点从 GPU 进一步移动到 CPU、HBM、封装与应用端推理需求。但斌继续高频转发 AI 基建与市场泡沫争论；钟本聪把 CPU、泡泡玛特电话会、Circle 稳定币价值放在同一条“成长叙事扩张”线上。</p>
+          </div>
+          <ul class="signal-list">
+            <li><b>AI 主线：</b>但斌和钟本聪都把 CPU、封装、HBM 与应用端推理需求当作新的关注点。</li>
+            <li><b>分歧信号：</b>但斌转发“像极了 1999 年泡沫破灭前”的相反观点，并回应称希望转相反观点文章，说明多头叙事中也在引入压力测试。</li>
+            <li><b>公司线索：</b>泡泡玛特 5 月 13 日一季度业务更新电话会成为新的观察点，讨论从 IP 逻辑转向经营数据验证。</li>
+            <li><b>低更新用户：</b>梁宏最近可见新帖停留在 05-09，严格今天窗口内没有新的实质投资观点。</li>
+          </ul>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>用户观点卡片</h2>
+          <code>latest timeline synthesis</code>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/1102105103">但斌</a></h3>
+            <div class="meta"><span class="pill">AI 基建</span><span class="pill">反方观点</span></div>
+            <p>今日内容继续高密度围绕 AI 产业链：CPU 重要性、AI 基建与应用共同繁荣、HBM 封装、黄仁勋演讲、私募净值表现。值得注意的是，他也转发市场泡沫警示文章，并明确表示希望转相反观点。</p>
+            <ul>
+              <li>《港湾观点》把 CPU 描述为可能出现需求爆发的新方向，和 GPU、存储、应用端一起看。</li>
+              <li>转发高盛拆解 AI 资本开支、SK 海力士与英特尔封装、最牛天使等材料。</li>
+              <li>对粉丝“远离经济学家”的评论不完全顺从，强调需要看相反观点。</li>
+            </ul>
+            <div class="quote">短证据：CPU 需求爆发、AI 资本洪流、HBM 封装、相反观点。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/8586152406">钟本聪 Dylan</a></h3>
+            <div class="meta"><span class="pill">CPU</span><span class="pill">泡泡玛特</span><span class="pill">Circle</span></div>
+            <p>观点最密集。今天最强投资表达是 CPU 需求在推理端放大，可能成为 GPU、存储、光模块之后的新爆点；同时继续跟踪泡泡玛特海外门店、电话会和 Circle 稳定币的长期金融价值。</p>
+            <ul>
+              <li>认为 CPU 需求会因应用端推理而加速，甚至未来三年可能指数级赶上或超过 GPU 需求。</li>
+              <li>关注泡泡玛特 5 月 13 日一季度业务更新电话会，西雅图门店人流也被作为海外需求观察。</li>
+              <li>在 Circle 讨论中强调美元霸权延伸，认为潜在交易渗透空间不小。</li>
+            </ul>
+            <div class="quote">短证据：CPU 三巨头、5 月 13 日电话会、稳定币价值、海外门店。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/9887656769">梁宏</a></h3>
+            <div class="meta"><span class="pill">无今日新帖</span><span class="pill">旧框架延续</span></div>
+            <p>最近可见发言仍是 05-09 在海南工作时对股市和掼蛋的轻量表达，今天没有新的投资判断。页面可见旧观点仍围绕 NAND、存储周期、能源多元化和中国优势产业，但这些不能直接当作今日信号。</p>
+            <ul>
+              <li>05-09 的“股市不错”更像状态更新，不构成行业或持仓观点。</li>
+              <li>04 月观点继续强调 NAND 优于 DRAM、token 需求拉动存储、能源与储能受益。</li>
+              <li>后续若重新高频发言，应重点对照其存储与周期框架是否改变。</li>
+            </ul>
+            <div class="quote">短证据：05-09 后未见新实质观点；NAND、能源、周期是旧主线。</div>
+          </article>
+
+          <article class="card">
+            <h3><a href="https://xueqiu.com/u/1247347556">大道无形我有型</a></h3>
+            <div class="meta"><span class="pill">方法论</span><span class="pill">泡泡玛特</span></div>
+            <p>最近可见内容主要是昨天围绕“知行合一”的回复。他把行为视为认知的外显，认为卡在情绪或犹豫处，本质上是还没有真正知道。稍早内容继续围绕泡泡玛特、神华机会成本和企业家判断。</p>
+            <ul>
+              <li>“你在行的就是你知的”是今天最重要的方法论线索。</li>
+              <li>对“知行合一的代价”的回答落到成为本该成为的人，而不是交易技巧。</li>
+              <li>泡泡玛特旧线索仍在：看企业家、机会成本、不要把持股信心误认为价值投资。</li>
+            </ul>
+            <div class="quote">短证据：知行合一、真正知道、机会成本、企业家复利。</div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>交叉主题</h2>
+          <code>where views overlap</code>
+        </div>
+        <div class="matrix">
+          <article>
+            <h3>AI 从 GPU 扩散到 CPU</h3>
+            <ul>
+              <li>但斌转发 CPU 与 AI 基建观点，钟本聪直接把 CPU 称为 AI 产业链新爆点。</li>
+              <li>两人的共同点是把推理需求、硬件扩容和资本开支连成一条链。</li>
+              <li>下一阶段要看真实订单、毛利率、数据中心收入，而不是只看叙事热度。</li>
+            </ul>
+          </article>
+          <article>
+            <h3>泡泡玛特等待经营验证</h3>
+            <ul>
+              <li>钟本聪转向 5 月 13 日业务更新电话会，这是从故事到数字的关键节点。</li>
+              <li>大道旧线索仍强调王宁、企业家复利和机会成本。</li>
+              <li>市场接下来会更关心海外收入、门店效率、IP 生命周期和管理层口径。</li>
+            </ul>
+          </article>
+          <article>
+            <h3>多头叙事开始自我压力测试</h3>
+            <ul>
+              <li>但斌主动转发泡沫类相反观点，说明强多头并非完全排斥风险讨论。</li>
+              <li>钟本聪延伸到 Circle、稳定币和年轻人环境选择，体现成长叙事外溢。</li>
+              <li>这类阶段最需要区分“长期空间”和“短期估值消化”。</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>跟踪清单</h2>
+          <code>next signals to watch</code>
+        </div>
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th>线索</th>
+                <th>为什么重要</th>
+                <th>下一步观察</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CPU 与 AI 推理需求</td>
+                <td>但斌与钟本聪同时把 CPU 放到 AI 产业链核心位置，意味着资金可能寻找 GPU 之外的新硬件弹性。</td>
+                <td>跟踪英特尔、AMD、服务器 CPU、封装与 HBM 相关公司是否出现订单和利润率验证。</td>
+              </tr>
+              <tr>
+                <td>AI 泡沫压力测试</td>
+                <td>“1999 年泡沫前”这类反方材料进入多头信息流，可能影响高估值资产的风险定价。</td>
+                <td>关注多头是否继续吸收反方观点，还是回到单向乐观叙事。</td>
+              </tr>
+              <tr>
+                <td>泡泡玛特 5 月 13 日电话会</td>
+                <td>钟本聪明确提示一季度业务更新电话会，市场会用管理层口径校验全球 IP 叙事。</td>
+                <td>重点看海外增长、产品矩阵、渠道库存、门店效率和管理层对全年节奏的表述。</td>
+              </tr>
+              <tr>
+                <td>梁宏更新缺口</td>
+                <td>他的旧框架很清楚，但今天缺少新发言，不能把 4 月旧观点机械外推成今日观点。</td>
+                <td>等下一次新帖，再判断其 NAND、周期、能源与港股/美股配置框架是否有变化。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>来源与边界</h2>
+          <code>method note</code>
+        </div>
+        <ul class="sources">
+          <li><a href="https://xueqiu.com/u/1102105103">但斌 - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/8586152406">钟本聪 Dylan - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/9887656769">梁宏 - 雪球主页</a></li>
+          <li><a href="https://xueqiu.com/u/1247347556">大道无形我有型 - 雪球主页</a></li>
+        </ul>
+        <p class="note">说明：本页为信息整理，不构成投资建议。雪球页面存在懒加载、折叠正文、相对时间显示和登录态差异；摘要以本次抓取可见内容为依据，避免复刻长篇原文。</p>
+      </section>
+
+      <footer>
+        生成日期：2026-05-11。单页 HTML 报告，适合直接发布到静态站点或 GitHub Pages。
+      </footer>
+    </article>
+  </main>
+</body>
+</html>
